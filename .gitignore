@@ -1,5 +1,5 @@
 node_modules/
 build/
 logs/*
-input/*
 output/*
+output.tmp/*
