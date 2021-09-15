@@ -1,8 +1,7 @@
 import fs from "fs";
 import path from "path";
 import { spawn } from "child_process";
-
-const encodeOptions = require("../settings.json").encoding;
+import { logger } from "./logger";
 
 interface Obj {
     [key: string]: string;
@@ -21,7 +20,7 @@ export class Encoder {
     constructor() {
         this.encodeOptions = Object.assign(
             Encoder.defaultEncodeOptions,
-            require("../options.json").encoding
+            require("../settings.json").encoding
         );
     }
 
@@ -60,19 +59,19 @@ export class Encoder {
                 outputName
             ];
 
-            console.log(`Converto "${path.basename(input)}" in "${path.basename(outputName)}"...`);
+            logger.info(`Converto "${path.basename(input)}" in "${path.basename(outputName)}"...`);
 
             const child = spawn(Encoder.pathToFfmpeg, args);
 
             child.stdout.on("data", chunk => {
-                console.log(chunk);
+                logger.debug(chunk);
             });
             child.on("close", code => {
-                console.log("Conversione avvenuta con successo");
+                logger.info("Conversione avvenuta con successo");
                 resolve();
             });
             child.on("error", err => {
-                console.error("piango :(\n", err);
+                logger.error(err);
                 process.exit(1);
             });
         });
@@ -81,7 +80,7 @@ export class Encoder {
     public async encodeAll() {
         const { inputPath, outputPath } = this.prepareFolders();
         const files = this.getFileNames();
-        console.log("Lista file: " + files.join(", "));
+        logger.info("Lista file: " + files.join(", "));
         for (const file of files) {
             const fileInput = path.join(inputPath, file);
             const fileName = path.basename(fileInput);
