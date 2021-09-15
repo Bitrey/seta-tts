@@ -3,6 +3,13 @@ import path from "path";
 import { logger } from "./logger";
 
 export class TTS {
+    /**
+     * Metodo principale per convertire una stringa in file audio con TTS.
+     * Sotto utilizza la CLI di Balabolka, Balcon.
+     * @param  {string} text - la stringa da convertire in file audio
+     * @param  {string} outputName - nome del file audio di output
+     * @param  {string} [outputPath] - percorso assoluto della cartella di output
+     */
     speak(
         text: string,
         outputName: string,

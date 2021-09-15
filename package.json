@@ -20,6 +20,7 @@
   },
   "dependencies": {
     "ffmpeg-static": "^4.4.0",
+    "json-2-csv": "^3.14.4",
     "winston": "^3.3.3"
   }
 }

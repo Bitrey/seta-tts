@@ -8,4 +8,6 @@ async function test() {
     await encoder.encodeAll();
 }
 
-test();
+// test();
+
+import "./FileReader";

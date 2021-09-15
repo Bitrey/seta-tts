@@ -89,7 +89,7 @@ export class Encoder {
         });
     }
 
-    public async encodeAll(inputDir?: string, outputDir?: string) {
+    public async encodeAll(inputDir?: string, outputDir?: string): Promise<void> {
         const { inputPath, outputPath } = this.prepareFolders();
         const files = this.getFileNames(inputDir || undefined);
         const f = '"' + files.join('", "') + '"' || `${path.basename(inputDir || inputPath)} vuoto`;
