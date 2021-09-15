@@ -1,13 +1,19 @@
-import { Encoder } from "./Encoder";
-import { TTS } from "./TTS";
+import { app, BrowserWindow } from "electron";
+
+import { Encoder } from "./classes/Encoder";
+import { TTS } from "./classes/TTS";
+
+// DEBUG
+import "./classes/FileReader";
+
+// DEBUG
+import "./gui/electron";
 
 async function test() {
     const tts = new TTS();
-    await tts.speak("Prossima fermata: Modena Autostazione.", "modena");
+    await tts.speak("Sono una prova. Prossima fermata: San Cesario.", "sancesario");
     const encoder = new Encoder();
     await encoder.encodeAll();
 }
 
 // test();
-
-import "./FileReader";

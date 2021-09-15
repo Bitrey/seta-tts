@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="UTF-8" />
+        <!-- https://developer.mozilla.org/en-US/docs/Web/HTTP/CSP -->
+        <!-- <meta
+            http-equiv="Content-Security-Policy"
+            content="default-src 'self'; script-src 'self'"
+        />
+        <meta
+            http-equiv="X-Content-Security-Policy"
+            content="default-src 'self'; script-src 'self'"
+        /> -->
+        <title>Hello World!</title>
+
+        <!-- Materialize CSS -->
+        <link
+            rel="stylesheet"
+            href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css"
+        />
+
+        <!-- Filepond CSS -->
+        <!-- <link href="./static/filepond.css" rel="stylesheet" /> -->
+
+        <!-- Custom CSS -->
+        <link rel="stylesheet" href="./static/gui.css" />
+    </head>
+    <body>
+        <nav>
+            <div class="nav-wrapper">
+                <div class="container">
+                    <a href="#" class="brand-logo">SETA TTS</a>
+                    <ul id="nav-mobile" class="right hide-on-med-and-down">
+                        <li><a href="#">Chiudi</a></li>
+                    </ul>
+                </div>
+            </div>
+        </nav>
+
+        <div class="container">
+            <div class="csv-upload-container">
+                <h1 style="text-align: center">Carica CSV</h1>
+
+                <!-- We'll transform this input into a pond -->
+                <!-- <input type="file" class="filepond" /> -->
+                <div id="file-drop">
+                    <p id="csv-info">Fai un drag and drop del CSV oppure</p>
+                    <a class="waves-effect waves-light btn" id="file-picker">Scegli file</a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Materialize CSS -->
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
+
+        <!-- FilePond JS -->
+        <!-- <script src="./static/filepond-it.js" defer></script>
+        <script src="./static/filepond.js" defer></script> -->
+
+        <!-- Custom JS -->
+        <script src="./static/renderer.js" defer></script>
+        <!-- <script src="./static/filepond-it.js"></script>
+        <script src="./static/gui.js"></script> -->
+    </body>
+</html>

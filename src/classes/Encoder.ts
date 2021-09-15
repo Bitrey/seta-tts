@@ -1,7 +1,7 @@
 import fs from "fs";
 import path from "path";
 import { spawn } from "child_process";
-import { logger } from "./logger";
+import { logger } from "../misc/logger";
 
 interface Obj {
     [key: string]: string;
@@ -17,7 +17,7 @@ export class Encoder {
         volume: 1.5
     };
 
-    constructor(settingsPath = "../settings.json") {
+    constructor(settingsPath = path.join(__dirname, "../../settings.json")) {
         this.encodeOptions = Object.assign(
             Encoder.defaultEncodeOptions,
             require(settingsPath).encoding
@@ -25,9 +25,9 @@ export class Encoder {
     }
 
     private prepareFolders(inputDirName = "output.tmp", outputDirName = "output") {
-        const inputPath = path.join(__dirname, "../", inputDirName);
+        const inputPath = path.join(__dirname, "../../", inputDirName);
         if (!fs.existsSync(inputPath)) fs.mkdirSync(inputPath);
-        const outputPath = path.join(__dirname, "../", outputDirName);
+        const outputPath = path.join(__dirname, "../../", outputDirName);
         if (!fs.existsSync(outputPath)) fs.mkdirSync(outputPath);
         return { inputPath, outputPath };
     }
