@@ -2,13 +2,11 @@ import fs from "fs";
 import path from "path";
 import { spawn } from "child_process";
 import { logger } from "../misc/logger";
-
-interface Obj {
-    [key: string]: string;
-}
+import { AnyObj } from "./AnyObj";
+import trash from "trash";
 
 export class Encoder {
-    public encodeOptions: Obj;
+    public encodeOptions: AnyObj;
     public static readonly pathToFfmpeg: string = require("ffmpeg-static");
     public static readonly defaultEncodeOptions = {
         bitrate: "24k",
@@ -17,17 +15,26 @@ export class Encoder {
         volume: 1.5
     };
 
-    constructor(settingsPath = path.join(__dirname, "../../settings.json")) {
-        this.encodeOptions = Object.assign(
-            Encoder.defaultEncodeOptions,
-            require(settingsPath).encoding
-        );
+    constructor(
+        settings: AnyObj,
+        defaultSettingsPath = path.join(process.cwd(), "./settings.json")
+    ) {
+        this.encodeOptions = {
+            ...Encoder.defaultEncodeOptions,
+            ...require(defaultSettingsPath).encoding,
+            settings
+        };
+    }
+
+    public async clearTmpDir(tmpDirPath = path.join(process.cwd(), "./output.tmp")) {
+        logger.info(`I file dentro "${tmpDirPath}" verranno cestinati`);
+        await trash(tmpDirPath);
     }
 
     private prepareFolders(inputDirName = "output.tmp", outputDirName = "output") {
-        const inputPath = path.join(__dirname, "../../", inputDirName);
+        const inputPath = path.join(process.cwd(), "./", inputDirName);
         if (!fs.existsSync(inputPath)) fs.mkdirSync(inputPath);
-        const outputPath = path.join(__dirname, "../../", outputDirName);
+        const outputPath = path.join(process.cwd(), "./", outputDirName);
         if (!fs.existsSync(outputPath)) fs.mkdirSync(outputPath);
         return { inputPath, outputPath };
     }
@@ -38,13 +45,13 @@ export class Encoder {
     }
 
     public encodeFile(input: string, output: string): Promise<void> {
-        return new Promise((resolve, reject) => {
+        return new Promise(async (resolve, reject) => {
             const { bitrate, channels, sampleRate, volume } = this.encodeOptions;
             const outputName = output.replace(/\.[^/.]+$/, "") + ".mp3";
 
             if (fs.existsSync(outputName)) {
-                logger.info(`"${path.basename(outputName)}" esiste già e verrà sovrascritto`);
-                fs.unlinkSync(outputName);
+                logger.info(`"${path.basename(outputName)}" esiste già e verrà cestinato`);
+                await trash(outputName);
             }
 
             const args = [

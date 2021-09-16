@@ -6,7 +6,7 @@
     "scripts": {
         "test": "echo \"Error: no test specified\" && exit 1",
         "dev": "nodemon",
-        "build": "rimraf ./build && tsc",
+        "build": "rimraf ./build && tsc && git rev-parse --short HEAD > latest_commit.txt",
         "start": "npm run build && electron build/index.js"
     },
     "author": "Bitrey",
@@ -22,6 +22,7 @@
     "dependencies": {
         "ffmpeg-static": "^4.4.0",
         "json-2-csv": "^3.14.4",
+        "trash": "^7.2.0",
         "winston": "^3.3.3"
     }
 }

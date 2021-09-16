@@ -1,9 +1,11 @@
-import { app, BrowserWindow } from "electron";
+import { app, BrowserWindow, ipcMain, dialog, shell } from "electron";
 import * as path from "path";
-import { ipcMain } from "electron";
-import { dialog } from "electron";
 import { FileReader } from "../classes/FileReader";
 import { logger } from "../misc/logger";
+import { readFileSync } from "fs";
+import { TTS } from "../classes/TTS";
+import { AnyObj } from "../classes/AnyObj";
+import { Encoder } from "../classes/Encoder";
 
 let mainWindow: BrowserWindow | null = null;
 
@@ -17,11 +19,14 @@ function createWindow() {
             nodeIntegration: true,
             contextIsolation: false
         },
-        width: 800
+        width: 800,
+        show: false
     });
+    mainWindow.maximize();
+    mainWindow.show();
 
     // and load the index.html of the app.
-    mainWindow.loadFile(path.join(__dirname, "../../index.html"));
+    mainWindow.loadFile(path.join(process.cwd(), "./index.html"));
 
     // Open the DevTools.
     mainWindow.webContents.openDevTools();
@@ -67,6 +72,97 @@ ipcMain.on("file", async (event, filePath) => {
     logger.debug("Invio file...");
     const f = new FileReader(filePath);
     await f.csvToJson();
-    event.reply("file", { columnNames: f.columnNames, jsonContent: f.jsonContent });
+    event.reply("file", {
+        fileName: path.basename(filePath),
+        columnNames: f.columnNames,
+        jsonContent: f.jsonContent
+    });
     logger.debug("File inviato");
+});
+
+ipcMain.on("output-path", async (event, args) => {
+    if (!mainWindow) throw new Error("mainWindow not loaded yet");
+    const files = await dialog.showOpenDialog(mainWindow, {
+        properties: ["openDirectory", "createDirectory"]
+    });
+    logger.debug("Output directory: " + files.filePaths[0]);
+    event.reply("output-path-ok", { outputPath: files.filePaths[0] });
+});
+
+ipcMain.on("latest-commit", event => {
+    let commit = "-";
+    try {
+        commit = readFileSync(path.join(process.cwd(), "latest_commit.txt"), {
+            encoding: "utf-8"
+        });
+    } catch (err) {
+        logger.warn(err);
+    }
+    event.reply("latest-commit", commit);
+});
+
+function formatVariables(str: string, row: AnyObj): string {
+    const matches = str.match(/\{(.*?)\}/g);
+    if (!matches) return str;
+    for (const match of matches) {
+        const m = match.replace(/\{\ *|\ *}/g, "");
+        if (m in <any>row) {
+            str = str.replace(match, row[<any>m]);
+        }
+    }
+    return str;
+}
+
+interface ConversionArg {
+    jsonContent: AnyObj[];
+    ttsString: string;
+    fileName: string;
+    format: "mp3" | "wav";
+    bitrate: number;
+    sampleRate: number;
+    volume: number;
+    outputPath: string;
+}
+
+ipcMain.on("start-conversion", async (event, arg) => {
+    const {
+        jsonContent,
+        ttsString,
+        fileName,
+        format,
+        bitrate,
+        sampleRate,
+        volume,
+        outputPath
+    }: ConversionArg = arg;
+    const correctPath = path.join(outputPath);
+    console.log(arg);
+    // vado di fiducia, non stai a modificare l'html quindi non valido i tuoi input
+    const tts = new TTS();
+    // DEBUG!! Considera "format", ora è hard coded wav
+    const encoder = new Encoder({ bitrate, sampleRate, volume } as any);
+    await encoder.clearTmpDir();
+
+    event.reply("conversion-status", "Inizio TTS");
+    for (let i = 0; i < jsonContent.length; i++) {
+        event.reply("conversion-status", `TTS... (Riga ${i + 1}/${jsonContent.length})`);
+        const formattedStr = formatVariables(ttsString, jsonContent[i]);
+        const formattedTitle = formatVariables(fileName, jsonContent[i]);
+        await tts.speak(formattedStr, formattedTitle);
+    }
+
+    event.reply(
+        "conversion-status",
+        "Codifica dei file audio... (potrebbe richiedere molto tempo)"
+    );
+    await encoder.encodeAll(undefined, correctPath);
+
+    event.reply("conversion-status", "Pulisco cartella temporanea...");
+    await encoder.clearTmpDir();
+    event.reply("conversion-status", `Finito! Ecco i tuoi file salvati in "${correctPath}"`);
+    shell.openPath(correctPath);
+});
+
+ipcMain.on("close", e => {
+    app.quit();
 });

@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html>
-    <head>
-        <meta charset="UTF-8" />
-        <!-- https://developer.mozilla.org/en-US/docs/Web/HTTP/CSP -->
-        <!-- <meta
+<html lang="it">
+  <head>
+    <meta charset="UTF-8" />
+    <!-- https://developer.mozilla.org/en-US/docs/Web/HTTP/CSP -->
+    <!-- <meta
             http-equiv="Content-Security-Policy"
             content="default-src 'self'; script-src 'self'"
         />
@@ -11,55 +11,267 @@
             http-equiv="X-Content-Security-Policy"
             content="default-src 'self'; script-src 'self'"
         /> -->
-        <title>Hello World!</title>
+    <title>SETA TTS</title>
 
-        <!-- Materialize CSS -->
-        <link
-            rel="stylesheet"
-            href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css"
-        />
+    <!-- Materialize CSS -->
+    <link rel="stylesheet" href="./static/materialize.min.css" />
 
-        <!-- Filepond CSS -->
-        <!-- <link href="./static/filepond.css" rel="stylesheet" /> -->
+    <!-- Filepond CSS -->
+    <!-- <link href="./static/filepond.css" rel="stylesheet" /> -->
 
-        <!-- Custom CSS -->
-        <link rel="stylesheet" href="./static/gui.css" />
-    </head>
-    <body>
-        <nav>
-            <div class="nav-wrapper">
-                <div class="container">
-                    <a href="#" class="brand-logo">SETA TTS</a>
-                    <ul id="nav-mobile" class="right hide-on-med-and-down">
-                        <li><a href="#">Chiudi</a></li>
-                    </ul>
-                </div>
-            </div>
-        </nav>
-
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="./static/gui.css" />
+  </head>
+  <body>
+    <nav>
+      <div class="nav-wrapper">
         <div class="container">
-            <div class="csv-upload-container">
-                <h1 style="text-align: center">Carica CSV</h1>
+          <a href="#" class="brand-logo" tabindex="-1">SETA TTS</a>
+          <ul id="nav-mobile" class="right hide-on-med-and-down">
+            <li><a href="#" id="close-btn">Chiudi</a></li>
+          </ul>
+        </div>
+      </div>
+    </nav>
 
-                <!-- We'll transform this input into a pond -->
-                <!-- <input type="file" class="filepond" /> -->
-                <div id="file-drop">
-                    <p id="csv-info">Fai un drag and drop del CSV oppure</p>
-                    <a class="waves-effect waves-light btn" id="file-picker">Scegli file</a>
-                </div>
-            </div>
+    <div class="container">
+      <div class="csv-upload-container">
+        <h1 style="text-align: center">Carica CSV</h1>
+
+        <!-- We'll transform this input into a pond -->
+        <!-- <input type="file" class="filepond" /> -->
+        <div id="file-drop">
+          <p id="csv-info">Fai un drag and drop del CSV oppure</p>
+          <a class="waves-effect waves-light btn" id="file-picker">Scegli file</a>
+        </div>
+      </div>
+
+      <!-- hide -->
+      <div class="csv-file-container hide" style="padding-bottom: 3rem">
+        <div style="display: flex; align-items: center">
+          <a class="waves-effect waves-light btn" id="new-file">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24">
+              <path d="M0 12l9-8v6h15v4h-15v6z" fill="white" />
+            </svg>
+          </a>
+          <h2 id="file-name">nome_file_bello_e_figo.csv</h2>
         </div>
 
-        <!-- Materialize CSS -->
-        <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
+        <ul class="collapsible">
+          <li>
+            <div class="collapsible-header">
+              Anteprima
+              <span style="margin-left: auto">
+                <svg
+                  class="accordion-arrow"
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="18"
+                  height="18"
+                  viewBox="0 0 24 24"
+                >
+                  <path d="M5 3l3.057-3 11.943 12-11.943 12-3.057-3 9-9z" />
+                </svg>
+              </span>
+            </div>
 
-        <!-- FilePond JS -->
-        <!-- <script src="./static/filepond-it.js" defer></script>
+            <div class="collapsible-body table-container">
+              <table id="preview-table" class="stripped">
+                <thead>
+                  <tr id="table-thead-tr"></tr>
+                </thead>
+                <tbody id="table-tbody"></tbody>
+              </table>
+              <p id="hidden-rows-num" class="hide" style="color: darkgray"></p>
+            </div>
+          </li>
+        </ul>
+
+        <div class="row">
+          <div style="margin-top: 4rem" class="col s12">
+            <h5 style="margin-bottom: 1rem; font-weight: 500">TTS</h5>
+            <p>
+              Per ogni riga verrà generato un file audio. Puoi scegliere il testo da far
+              pronunciare, il nome del file e le impostazioni di codifica.
+            </p>
+            <p>
+              Sono state rilevate
+              <span id="header-num">x</span>
+              colonne:
+              <span id="headers"></span>
+              che puoi usare come variabili all'interno di parentesi graffe.
+            </p>
+            <p>
+              Se, per esempio, la prima colonna equivale al nome della fermata e vuoi che venga
+              pronunciata la frase
+              <i>&quot;Prossima fermata: &lt;nome fermata&gt;&quot;,</i>
+              ti basterà scrivere
+              <i>
+                Prossima fermata: {
+                <span class="first-col">nome prima colonna</span>
+                }
+              </i>
+            </p>
+            <p>
+              Oppure se equivale al codice della fermata e vuoi che il file venga salvato come
+              <i>&lt;codicefermata&gt;.mp3</i>
+              , nell'apposita casella di testo metterai
+              <i>
+                {
+                <span class="first-col">nome prima colonna</span>
+                }
+              </i>
+            </p>
+
+            <div class="row" style="margin-top: 3rem; margin-bottom: 0">
+              <div class="input-field col s12">
+                <input id="tts-string-input" type="text" />
+                <label for="tts-string-input">Testo da pronunciare</label>
+                <small id="tts-string-preview-container">
+                  Il primo file sarà il TTS di
+                  <span id="tts-string-preview" style="font-weight: 600">-</span>
+                </small>
+              </div>
+            </div>
+            <div class="row">
+              <div class="input-field col s8">
+                <input id="file-name-input" type="text" />
+                <label for="file-name-input">Nome del file</label>
+                <small id="file-name-preview-container">
+                  Il primo file sarà chiamato
+                  <span id="file-name-preview" style="font-weight: 600">-</span>
+                </small>
+              </div>
+              <div class="input-field col s4">
+                <select id="audio-format-input">
+                  <option value="mp3" selected>MP3</option>
+                  <option value="wav">WAV</option>
+                </select>
+                <label for="audio-format-input">Formato audio</label>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div style="margin-top: 4rem; margin-bottom: 1rem" class="row">
+          <div class="col s12">
+            <h5 style="margin-bottom: 1rem; font-weight: 500">Codifica audio</h5>
+            <p>
+              Le impostazioni di codifica audio corrette sono: bitrate a
+              <strong>24kbps,</strong>
+              sample rate di
+              <strong>11025Hz</strong>
+              e volume al
+              <strong>150%</strong>
+            </p>
+          </div>
+        </div>
+
+        <div class="row">
+          <div style="visibility: hidden" class="col s12">
+            <p id="audio-errors">-</p>
+          </div>
+          <div class="input-field col s6">
+            <select id="bitrate">
+              <option value="24k" selected>24kbps</option>
+              <option value="32k">32kbps</option>
+              <option value="96k">96kbps</option>
+              <option value="128k">128kbps</option>
+              <option value="192k">192kbps</option>
+              <option value="256k">256kbps</option>
+            </select>
+            <label for="bitrate">Bitrate</label>
+          </div>
+
+          <div class="input-field col s6">
+            <!-- prettier-ignore -->
+            <select id="sample-rate">
+              <option value="1000">​1 kHz​</option>​
+              <option value="2000">​2 kHz​</option>​
+              <option value="3000">​3 kHz​</option>​
+              <option value="4000">​4 kHz​</option>​
+              <option value="6000">​6 kHz​</option>​
+              <option value="8000">​8 kHz​</option>​
+              <option value="11025" selected>​11.025 kHz​</option>​
+              <option value="12000">​12 kHz​</option>​
+              <option value="16000">​16 kHz​</option>​
+              <option value="22050">​22.05 kHz​</option>​
+              <option value="24000">​24 kHz​</option>​
+              <option value="32000">​32 kHz​</option>​
+              <option value="44100">​44.1 kHz (CD)​</option>​
+              <option value="48000">​48 kHz (DVD)​</option>​
+              <option value="64000">​64 kHz​</option>​
+              <option value="88200">​88.2 kHz​</option>​
+              <option value="96000">​96 kHz​</option>​
+              <option value="128000">​128 kHz​</option>​
+              <option value="176400">​176.4 kHz​</option>​
+              <option value="192000">​192 kHz​</option>​
+              <option value="256000">​256 kHz​</option>​
+              <option value="352800">​352.8 kHz​</option>​
+              <option value="384000">​384 kHz​</option>​
+              <option value="512000">​512 kHz​</option>​
+              <option value="705600">​705.6 kHz​</option>​
+              <option value="768000">​768 kHz​</option>​
+              <option value="1024000">​1024 kHz​</option>​
+            </select>
+            <label for="sample-rate">Sample rate</label>
+          </div>
+        </div>
+
+        <div class="row">
+          <div class="input-field col s6">
+            <p class="range-field">
+              <label for="volume">Volume</label>
+              <span style="display: flex; align-items: center">
+                <input type="range" id="volume" min="0" max="200" value="150" />
+                <span id="volume-txt" style="padding-left: 1rem; color: #9e9e9e">150%</span>
+              </span>
+            </p>
+          </div>
+
+          <div class="input-field col s6">
+            <div class="file-field input-field">
+              <div class="btn">
+                <span>Cartella di output</span>
+                <input type="file" webkitdirectory onclick="outputPath(event)" />
+              </div>
+              <div class="file-path-wrapper">
+                <input class="file-path validate" id="output-path-txt" type="text" />
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div style="margin-top: 3rem" class="row">
+          <div style="display: flex; align-items: flex-end" class="col s12">
+            <a id="convert" class="waves-effect waves-light btn-large">Avvia conversione</a>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <footer style="z-index: 100" class="page-footer">
+      <div class="container" style="padding-top: 1rem; padding-bottom: 1rem">
+        Per dubbi o problemi:
+        <a style="color: inherit" href="mailto:alessandro.amella@setaweb.it">
+          alessandro.amella@setaweb.it
+        </a>
+        <span class="right">
+          commit
+          <span style="font-weight: 600" id="latest-commit">-</span>
+        </span>
+      </div>
+    </footer>
+
+    <!-- Materialize CSS -->
+    <script src="./static/materialize.min.js"></script>
+
+    <!-- FilePond JS -->
+    <!-- <script src="./static/filepond-it.js" defer></script>
         <script src="./static/filepond.js" defer></script> -->
 
-        <!-- Custom JS -->
-        <script src="./static/renderer.js" defer></script>
-        <!-- <script src="./static/filepond-it.js"></script>
+    <!-- Custom JS -->
+    <script src="./static/renderer.js" defer></script>
+    <!-- <script src="./static/filepond-it.js"></script>
         <script src="./static/gui.js"></script> -->
-    </body>
+  </body>
 </html>

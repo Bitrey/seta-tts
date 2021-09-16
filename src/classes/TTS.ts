@@ -13,7 +13,7 @@ export class TTS {
     speak(
         text: string,
         outputName: string,
-        outputPath = path.join(__dirname, "../../output.tmp")
+        outputPath = path.join(process.cwd(), "./output.tmp")
     ): Promise<void> {
         return new Promise((resolve, reject) => {
             if (!outputName.endsWith(".wav")) outputName += ".wav";
@@ -21,7 +21,7 @@ export class TTS {
 
             const fullPath = path.join(outputPath, outputName);
             const args = ["-t", text, "-n", "Loquendo Roberto", "-w", fullPath];
-            const child = spawn(path.join(__dirname, "../../bin/balcon.exe"), args);
+            const child = spawn(path.join(process.cwd(), "./bin/balcon.exe"), args);
 
             child.stdout.on("data", chunk => {
                 logger.info("stdout:");
