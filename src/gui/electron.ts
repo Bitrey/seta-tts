@@ -6,6 +6,10 @@ import { readFileSync } from "fs";
 import { TTS } from "../classes/TTS";
 import { AnyObj } from "../classes/AnyObj";
 import { Encoder } from "../classes/Encoder";
+import moment from "moment";
+import { formatVariables } from "../misc/formatVariables";
+
+moment.locale("it");
 
 let mainWindow: BrowserWindow | null = null;
 
@@ -85,7 +89,7 @@ ipcMain.on("output-path", async (event, args) => {
     const files = await dialog.showOpenDialog(mainWindow, {
         properties: ["openDirectory", "createDirectory"]
     });
-    logger.debug("Output directory: " + files.filePaths[0]);
+    logger.info("Cartella di output: " + files.filePaths[0]);
     event.reply("output-path-ok", { outputPath: files.filePaths[0] });
 });
 
@@ -101,18 +105,6 @@ ipcMain.on("latest-commit", event => {
     event.reply("latest-commit", commit);
 });
 
-function formatVariables(str: string, row: AnyObj): string {
-    const matches = str.match(/\{(.*?)\}/g);
-    if (!matches) return str;
-    for (const match of matches) {
-        const m = match.replace(/\{\ *|\ *}/g, "");
-        if (m in <any>row) {
-            str = str.replace(match, row[<any>m]);
-        }
-    }
-    return str;
-}
-
 interface ConversionArg {
     jsonContent: AnyObj[];
     ttsString: string;
@@ -122,9 +114,14 @@ interface ConversionArg {
     sampleRate: number;
     volume: number;
     outputPath: string;
+    multithreadedTTS: boolean;
+    multithreadedEncoding: boolean;
 }
 
 ipcMain.on("start-conversion", async (event, arg) => {
+    event.reply("conversion-status", { msg: "Inizio conversione..." });
+    const startDate = moment();
+
     const {
         jsonContent,
         ttsString,
@@ -133,34 +130,60 @@ ipcMain.on("start-conversion", async (event, arg) => {
         bitrate,
         sampleRate,
         volume,
-        outputPath
+        outputPath,
+        multithreadedTTS,
+        multithreadedEncoding
     }: ConversionArg = arg;
+
     const correctPath = path.join(outputPath);
-    console.log(arg);
+
     // vado di fiducia, non stai a modificare l'html quindi non valido i tuoi input
     const tts = new TTS();
     // DEBUG!! Considera "format", ora è hard coded wav
     const encoder = new Encoder({ bitrate, sampleRate, volume } as any);
+
+    event.reply("conversion-status", { msg: "Pulisco cartella temporanea..." });
     await encoder.clearTmpDir();
 
-    event.reply("conversion-status", "Inizio TTS");
-    for (let i = 0; i < jsonContent.length; i++) {
-        event.reply("conversion-status", `TTS... (Riga ${i + 1}/${jsonContent.length})`);
-        const formattedStr = formatVariables(ttsString, jsonContent[i]);
-        const formattedTitle = formatVariables(fileName, jsonContent[i]);
-        await tts.speak(formattedStr, formattedTitle);
+    event.reply("conversion-status", { msg: "TTS in corso... (potrebbe metterci un po')" });
+
+    if (multithreadedTTS) {
+        logger.info("TTS multithread");
+        await tts.speakAllMultithread(format, ttsString, fileName, jsonContent);
+    } else {
+        logger.info("TTS singlethread");
+        encoder.onConversionStart.on("tts-start", str => {
+            event.reply("conversion-status", { msg: str });
+        });
+        await tts.speakAll(ttsString, fileName, jsonContent, format);
     }
 
-    event.reply(
-        "conversion-status",
-        "Codifica dei file audio... (potrebbe richiedere molto tempo)"
-    );
-    await encoder.encodeAll(undefined, correctPath);
+    event.reply("conversion-status", { msg: "Codifica in corso... (potrebbe metterci un po')" });
 
-    event.reply("conversion-status", "Pulisco cartella temporanea...");
-    await encoder.clearTmpDir();
-    event.reply("conversion-status", `Finito! Ecco i tuoi file salvati in "${correctPath}"`);
+    if (multithreadedEncoding) {
+        logger.info("Codifica multithread");
+        await encoder.encodeAllMultithread(undefined, correctPath);
+    } else {
+        logger.info("Codifica singlethread");
+        encoder.onConversionStart.on("file-start", str => {
+            event.reply("conversion-status", { msg: str });
+        });
+        await encoder.encodeAll(undefined, correctPath);
+    }
+
+    // Codifica terminata, mentre vengono eliminati i temp file l'utente può guardare quelli finiti
     shell.openPath(correctPath);
+
+    event.reply("conversion-status", { msg: "Pulisco cartella temporanea..." });
+    // await encoder.clearTmpDir();
+
+    const sDiff = moment().diff(startDate, "s");
+    event.reply("conversion-status", {
+        msg: `Finito in ${sDiff} secondi! Ecco i tuoi file salvati in "${correctPath}"`,
+        finished: true
+    });
+
+    logger.info("TTS e codifica terminati");
 });
 
 ipcMain.on("close", e => {

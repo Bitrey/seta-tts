@@ -31,8 +31,6 @@ ipcRenderer.on("file-ok", (event, filePath) => {
 
 ipcRenderer.on("file", (event, { fileName, columnNames, jsonContent }) => {
     state.canUploadFile = false;
-    csvInfo("FUNZIONA!!!!!!!!!");
-    // console.log(columnNames, jsonContent);
     state.fileName = fileName;
     state.columnNames = columnNames;
     state.jsonContent = jsonContent;
@@ -153,13 +151,13 @@ function newFile() {
 
     accordion.close();
 
-    audioError(null, true);
+    audioLog(null, true);
 
     state.canUploadFile = true;
     state.fileName = null;
     state.columnNames = null;
     state.jsonContent = null;
-    state.outputPath = null;
+    // state.outputPath = null;
     state.canUploadFile = true;
 }
 document.getElementById("new-file").addEventListener("click", () => newFile());
@@ -181,17 +179,10 @@ function formatVariables(str) {
     const matches = str.match(/\{(.*?)\}/g);
     if (!matches) return str;
     for (const match of matches) {
-        // const span = document.createElement("span");
         const m = match.replace(/\{\ *|\ *}/g, "");
-        // console.log({ match, m, b: m in state.jsonContent[0], s: state.jsonContent[0][m] });
         if (m in state.jsonContent[0]) {
             str = str.replace(match, state.jsonContent[0][m]);
-            // span.style.color = "green";
         }
-        // else {
-        // span.style.color = "red";
-        // }
-        // parent.appendChild(span);
     }
     return str;
 }
@@ -226,7 +217,6 @@ document.getElementById("audio-format-input").addEventListener("change", event =
 
 function outputPath(event) {
     event.preventDefault();
-    console.log("send output-path");
     ipcRenderer.send("output-path");
     return false;
 }
@@ -240,43 +230,59 @@ document.getElementById("volume").addEventListener("input", event => {
     document.getElementById("volume-txt").textContent = event.target.value + "%";
 });
 
-function audioError(err, hide = false) {
+function audioLog(err, hide = false, disable = false) {
     const elem = document.getElementById("audio-errors");
     if (hide) {
         elem.textContent = "-";
         elem.style.visibility = "hidden";
     } else {
+        if (err) elem.textContent = err;
+        elem.style.visibility = "visible";
+    }
+    if (disable) {
         document.getElementById("convert").setAttribute("disabled", true);
         document.getElementById("convert").textContent = "Caricamento...";
-        elem.textContent = err;
-        elem.style.visibility = "visible";
+    } else {
+        document.getElementById("convert").removeAttribute("disabled");
+        document.getElementById("convert").textContent = "Avvia conversione";
     }
 }
 
 document.getElementById("convert").addEventListener("click", event => {
-    event.target.setAttribute("disabled", true);
-    event.target.textContent = "Caricamento...";
+    audioLog(null, true, true);
 
-    if (!state.outputPath) {
-        event.target.setAttribute("disabled", false);
-        event.target.textContent = "Avvia conversione";
-        return audioError("Specifica una cartella di output");
+    const ttsString = document.getElementById("tts-string-input").value;
+    const fileName = document.getElementById("file-name-input").value;
+
+    if (!state.jsonContent) {
+        return audioLog("Errore nel caricamento del contenuto CSV in JSON");
+    } else if (!ttsString) {
+        return audioLog("Specifica il testo da pronunciare");
+    } else if (!fileName) {
+        return audioLog("Specifica il nome del file");
+    } else if (!state.outputPath) {
+        return audioLog("Specifica una cartella di output");
     }
-
-    audioError(null, true);
 
     ipcRenderer.send("start-conversion", {
         jsonContent: state.jsonContent,
-        ttsString: document.getElementById("tts-string-input").value,
-        fileName: document.getElementById("file-name-input").value,
+        ttsString,
+        fileName,
         format: document.getElementById("audio-format-input").value,
         bitrate: document.getElementById("bitrate").value,
         sampleRate: document.getElementById("sample-rate").value,
         volume: document.getElementById("volume").value / 100,
-        outputPath: state.outputPath
+        outputPath: state.outputPath,
+        multithreadedTTS: document.getElementById("multithreaded-tts").checked,
+        multithreadedEncoding: document.getElementById("multithreaded-encoding").checked
     });
 });
 
-ipcRenderer.on("conversion-status", (event, status) => {
-    audioError(status);
+ipcRenderer.on("conversion-status", (event, data) => {
+    const { msg, finished } = data;
+    audioLog(msg, false, true);
+    if (finished) {
+        document.getElementById("convert").textContent = "Riavvia conversione";
+        audioLog(false, false, false);
+    }
 });

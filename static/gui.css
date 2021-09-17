@@ -93,3 +93,7 @@ body {
     margin-bottom: 1rem;
     font-weight: 600;
 }
+
+.lever {
+    margin-left: 0.6rem !important;
+}
