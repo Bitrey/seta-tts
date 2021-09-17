@@ -5,4 +5,5 @@ export interface TTSFileArg {
     fileName: string;
     row: AnyObj;
     finalFormat: string;
+    outputPath: string;
 }

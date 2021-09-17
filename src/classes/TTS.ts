@@ -84,9 +84,9 @@ export class TTS {
             task: workerPath
         });
         await Promise.all(
-            jsonContent.map(row =>
-                pool.exec({ ttsString, fileName, row, finalFormat } as TTSFileArg)
-            )
+            jsonContent.map(row => {
+                return pool.exec({ ttsString, fileName, row, finalFormat } as TTSFileArg);
+            })
         );
     }
 }

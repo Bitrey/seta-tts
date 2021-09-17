@@ -152,7 +152,7 @@ ipcMain.on("start-conversion", async (event, arg) => {
         await tts.speakAllMultithread(format, ttsString, fileName, jsonContent);
     } else {
         logger.info("TTS singlethread");
-        encoder.onConversionStart.on("tts-start", str => {
+        tts.onTTSStart.on("tts-start", str => {
             event.reply("conversion-status", { msg: str });
         });
         await tts.speakAll(ttsString, fileName, jsonContent, format);

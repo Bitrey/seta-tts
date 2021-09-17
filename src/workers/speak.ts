@@ -37,16 +37,23 @@ function speak(
     });
 }
 
-parentPort?.on("message", async ({ ttsString, fileName, row, finalFormat }: TTSFileArg) => {
-    if (!row || typeof row !== "object") {
-        throw new Error("encodeOptions must be an object");
-    } else if (typeof ttsString !== "string") {
-        throw new Error("input must be a string");
-    } else if (typeof fileName !== "string") {
-        throw new Error("output must be a string");
+parentPort?.on(
+    "message",
+    async ({ ttsString, fileName, row, finalFormat, outputPath }: TTSFileArg) => {
+        if (!row || typeof row !== "object") {
+            throw new Error("encodeOptions must be an object");
+        } else if (typeof ttsString !== "string") {
+            throw new Error("input must be a string");
+        } else if (typeof fileName !== "string") {
+            throw new Error("output must be a string");
+        }
+
+        const outputName = formatVariables(fileName, row);
+        const correctPath = outputPath || path.join(process.cwd(), "./output.tmp");
+
+        await speak(finalFormat, formatVariables(ttsString, row), outputName, correctPath);
+        logger.debug(`TTS di "${outputName}" completato"`);
+
+        parentPort?.postMessage(fileName);
     }
-
-    await speak(finalFormat, formatVariables(ttsString, row), formatVariables(fileName, row));
-
-    parentPort?.postMessage(fileName);
-});
+);
