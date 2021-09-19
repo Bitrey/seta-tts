@@ -111,7 +111,7 @@ export class Encoder {
                 logger.info(`stderr di "${fName}": ${chunk.toString().trim()}`);
             });
             child.on("close", code => {
-                logger.info(`Conversione avvenuta con successo (exit code ${code})`);
+                logger.info(`Conversione completata (exit code ${code})`);
                 resolve();
             });
             child.on("error", err => {

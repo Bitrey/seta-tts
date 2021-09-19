@@ -35,7 +35,55 @@
     </nav>
 
     <div class="container">
-      <div class="csv-upload-container">
+      <div id="voices-loading" style="display: flex; margin-top: 3rem" class="row">
+        <div style="margin-left: auto; margin-right: auto" class="col s12 m10">
+          <div class="card">
+            <div class="card-content">
+              <span style="display: flex; align-items: center" class="card-title">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  xmlns:xlink="http://www.w3.org/1999/xlink"
+                  style="
+                    margin-right: 0.5rem;
+                    background: rgb(255, 255, 255);
+                    display: block;
+                    shape-rendering: auto;
+                  "
+                  width="24px"
+                  height="24px"
+                  viewBox="0 0 100 100"
+                  preserveAspectRatio="xMidYMid"
+                >
+                  <circle
+                    cx="50"
+                    cy="50"
+                    fill="none"
+                    stroke="#ee6e73"
+                    stroke-width="10"
+                    r="35"
+                    stroke-dasharray="164.93361431346415 56.97787143782138"
+                  >
+                    <animateTransform
+                      attributeName="transform"
+                      type="rotate"
+                      repeatCount="indefinite"
+                      dur="1s"
+                      values="0 50 50;360 50 50"
+                      keyTimes="0;1"
+                    />
+                  </circle>
+                </svg>
+                Caricamento voci...
+              </span>
+              <div>
+                <p style="margin-top: 1rem">Sto cercando le voci installate su questo computer</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="csv-upload-container hide">
         <h1 style="text-align: center">Carica CSV</h1>
 
         <!-- We'll transform this input into a pond -->
@@ -43,6 +91,61 @@
         <div id="file-drop">
           <p id="csv-info">Fai un drag and drop del CSV oppure</p>
           <a class="waves-effect waves-light btn" id="file-picker">Scegli file</a>
+        </div>
+
+        <div id="voices-status" style="display: flex; margin-top: 3rem" class="row">
+          <div style="margin-left: auto; margin-right: auto" class="col s12 m10">
+            <div class="card">
+              <div class="card-content">
+                <span style="display: flex; align-items: center" class="card-title">
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="24"
+                    height="24"
+                    viewBox="0 0 24 24"
+                    fill="green"
+                    style="margin-right: 0.5rem"
+                    class="voice-ok hide"
+                  >
+                    <path
+                      d="M12 0c-6.627 0-12 5.373-12 12s5.373 12 12 12 12-5.373 12-12-5.373-12-12-12zm-1.959 17l-4.5-4.319 1.395-1.435 3.08 2.937 7.021-7.183 1.422 1.409-8.418 8.591z"
+                    />
+                  </svg>
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="24"
+                    height="24"
+                    viewBox="0 0 24 24"
+                    fill="red"
+                    style="margin-right: 0.5rem"
+                    class="voice-error hide"
+                  >
+                    <path
+                      d="M12 0c-6.627 0-12 5.373-12 12s5.373 12 12 12 12-5.373 12-12-5.373-12-12-12zm4.151 17.943l-4.143-4.102-4.117 4.159-1.833-1.833 4.104-4.157-4.162-4.119 1.833-1.833 4.155 4.102 4.106-4.16 1.849 1.849-4.1 4.141 4.157 4.104-1.849 1.849z"
+                    />
+                  </svg>
+                  <span class="voice-ok hide">Voce installata correttamente</span>
+                  <span class="voice-error hide">Voce non trovata</span>
+                </span>
+                <div>
+                  <p class="voice-error hide">
+                    È necessario installare la voce
+                    <span id="voice-name">Loquendo Roberto</span>
+                  </p>
+                  <ul style="margin-top: 2rem" class="collapsible">
+                    <li class="active">
+                      <div class="collapsible-header">Voci installate</div>
+                      <div style="padding: 1rem" class="collapsible-body">
+                        <span id="voices-list"></span>
+                      </div>
+                    </li>
+                  </ul>
+                  <!-- <p style="margin-top: 1rem">Voci installate:</p>
+                  <div id="voices-list"></div> -->
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -244,10 +347,15 @@
         <div style="margin-top: 3rem" class="row">
           <div style="display: flex; align-items: center" class="col s12">
             <a id="convert" class="waves-effect waves-light btn-large">Avvia conversione</a>
-            <div style="margin-left: 2rem" class="switch">
+            <div
+              style="margin-left: 2rem"
+              class="switch tooltipped"
+              data-position="top"
+              data-tooltip="Il TTS multithread mostra ancora qualche bug, pertanto bisogna evitare di usarlo"
+            >
               <label>
                 TTS multithread
-                <input type="checkbox" id="multithreaded-tts" checked />
+                <input disabled type="checkbox" id="multithreaded-tts" />
                 <span class="lever"></span>
               </label>
             </div>

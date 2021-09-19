@@ -7,7 +7,7 @@ import { TTS } from "../classes/TTS";
 import { AnyObj } from "../classes/AnyObj";
 import { Encoder } from "../classes/Encoder";
 import moment from "moment";
-import { formatVariables } from "../misc/formatVariables";
+import { listVoices } from "../misc/listVoices";
 
 moment.locale("it");
 
@@ -27,6 +27,7 @@ function createWindow() {
         show: false
     });
     mainWindow.maximize();
+    mainWindow.removeMenu();
     mainWindow.show();
 
     // and load the index.html of the app.
@@ -89,6 +90,7 @@ ipcMain.on("output-path", async (event, args) => {
     const files = await dialog.showOpenDialog(mainWindow, {
         properties: ["openDirectory", "createDirectory"]
     });
+    if (files.canceled) return;
     logger.info("Cartella di output: " + files.filePaths[0]);
     event.reply("output-path-ok", { outputPath: files.filePaths[0] });
 });
@@ -184,6 +186,10 @@ ipcMain.on("start-conversion", async (event, arg) => {
     });
 
     logger.info("TTS e codifica terminati");
+});
+
+ipcMain.on("get-voices", async event => {
+    event.reply("voices", await listVoices("Loquendo Roberto"));
 });
 
 ipcMain.on("close", e => {

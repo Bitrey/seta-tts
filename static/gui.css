@@ -97,3 +97,8 @@ body {
 .lever {
     margin-left: 0.6rem !important;
 }
+
+#voices-ul {
+    margin-top: 0.5rem;
+    margin-left: 1rem;
+}

@@ -43,6 +43,8 @@ document.getElementById("file-picker").addEventListener("click", () => {
 });
 
 document.addEventListener("drop", event => {
+    console.log("drop event");
+
     if (!state.canUploadFile) return;
     state.canUploadFile = false;
 
@@ -65,23 +67,28 @@ document.addEventListener("drop", event => {
 });
 
 document.addEventListener("dragover", e => {
+    console.log("file dragover");
     if (!state.canUploadFile) return;
     e.preventDefault();
     e.stopPropagation();
 });
 
 document.addEventListener("dragenter", event => {
+    console.log("file dragenter");
     if (!state.canUploadFile) return;
     csvInfo("Rilascia il file");
 });
 
 document.addEventListener("dragleave", event => {
+    console.log("file dragleave");
     if (!state.canUploadFile) return;
     csvInfo("Caccia dentro il CSV");
 });
 
 function renderTable() {
     const { fileName, columnNames, jsonContent } = state;
+
+    console.log("renderTable con", { fileName, columnNames, jsonContent });
 
     document.getElementById("file-name").textContent = fileName;
 
@@ -140,6 +147,8 @@ function renderTable() {
 
 // se si vuole ricominciare da capo con un nuovo file
 function newFile() {
+    console.log("newFile resetto GUI");
+
     document.getElementById("table-thead-tr").innerHTML = "";
     document.getElementById("table-tbody").innerHTML = "";
 
@@ -184,6 +193,7 @@ function formatVariables(str) {
             str = str.replace(match, state.jsonContent[0][m]);
         }
     }
+    console.log("formatVariables", matches, str);
     return str;
 }
 
@@ -216,17 +226,20 @@ document.getElementById("audio-format-input").addEventListener("change", event =
 });
 
 function outputPath(event) {
+    console.log("ipcRenderer output-path");
     event.preventDefault();
     ipcRenderer.send("output-path");
     return false;
 }
 
 ipcRenderer.on("output-path-ok", (event, { outputPath }) => {
+    console.log("Ricevuto outputPath", { outputPath });
     state.outputPath = outputPath;
     document.getElementById("output-path-txt").value = state.outputPath;
 });
 
 document.getElementById("volume").addEventListener("input", event => {
+    console.log("Volume: " + (event.target.value / 100).toFixed(2) + "%");
     document.getElementById("volume-txt").textContent = event.target.value + "%";
 });
 
@@ -264,6 +277,7 @@ document.getElementById("convert").addEventListener("click", event => {
         return audioLog("Specifica una cartella di output");
     }
 
+    console.log("start-conversion");
     ipcRenderer.send("start-conversion", {
         jsonContent: state.jsonContent,
         ttsString,
@@ -280,9 +294,59 @@ document.getElementById("convert").addEventListener("click", event => {
 
 ipcRenderer.on("conversion-status", (event, data) => {
     const { msg, finished } = data;
+    console.log("conversion-status", { msg, finished });
     audioLog(msg, false, true);
     if (finished) {
         document.getElementById("convert").textContent = "Riavvia conversione";
         audioLog(false, false, false);
     }
+});
+
+// interface VoicesReturn {
+//     expectedVoice: string;
+//     voices: Voices;
+//     hasVoice: boolean;
+// }
+// interface Voices {
+//     [SAPI: string]: string[];
+// }
+
+ipcRenderer.send("get-voices");
+ipcRenderer.on("voices", (event, { expectedVoice, voices, hasVoice } /*: VoicesReturn*/) => {
+    console.log("Voices", { expectedVoice, voices, hasVoice });
+
+    document.getElementById("voice-name").textContent = expectedVoice;
+
+    const ul = document.createElement("ul");
+    ul.classList.add("collection");
+    ul.classList.add("with-header");
+
+    let found = false;
+
+    for (const sapi in voices) {
+        const header = document.createElement("li");
+        header.classList.add("collection-header");
+        header.style.fontWeight = 600;
+        header.textContent = sapi;
+        ul.appendChild(header);
+
+        for (const voice of voices[sapi]) {
+            const item = document.createElement("li");
+            item.classList.add("collection-item");
+            item.textContent = voice;
+            if (!found && voice === expectedVoice) {
+                found = true;
+                item.style.fontWeight = 600;
+                item.style.textDecoration = "underline";
+            }
+            ul.appendChild(item);
+        }
+    }
+    document.getElementById("voices-list").appendChild(ul);
+
+    document
+        .querySelectorAll(hasVoice ? ".voice-ok" : ".voice-error")
+        .forEach(e => e.classList.remove("hide"));
+    document.getElementById("voices-loading").classList.add("hide");
+    document.querySelector(".csv-upload-container").classList.remove("hide");
 });

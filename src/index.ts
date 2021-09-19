@@ -1,11 +1,14 @@
-import { Encoder } from "./classes/Encoder";
-import { TTS } from "./classes/TTS";
+// import { Encoder } from "./classes/Encoder";
+// import { TTS } from "./classes/TTS";
 
 // DEBUG
-import "./classes/FileReader";
+// import "./classes/FileReader";
 
 // DEBUG
 import "./gui/electron";
+// import { listVoices } from "./misc/listVoices";
+
+// listVoices();
 
 // async function test() {
 //     const tts = new TTS();

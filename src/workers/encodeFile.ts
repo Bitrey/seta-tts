@@ -60,9 +60,7 @@ function encodeFile(encodeOptions: AnyObj, input: string, output: string): Promi
         });
         child.on("close", code => {
             logger.info(
-                `Conversione in "${path.basename(
-                    outputName
-                )}" avvenuta con successo (exit code ${code})`
+                `Conversione in "${path.basename(outputName)}" terminata (exit code ${code})`
             );
             resolve();
         });

@@ -44,7 +44,7 @@ export class TTS {
                 logger.info(`stderr di "${outputName}": ${chunk.toString().trim()}`);
             });
             child.on("close", code => {
-                logger.info(`TTS avvenuto con successo (exit code ${code})`);
+                logger.info(`TTS completato (exit code ${code})`);
                 resolve();
             });
             child.on("error", err => {
