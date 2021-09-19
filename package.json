@@ -1,19 +1,22 @@
 {
-    "name": "fermata",
+    "name": "seta-tts",
     "version": "1.0.0",
-    "description": "",
-    "main": "index.js",
+    "description": "App per fare TTS da file CSV, utile per generare i file audio delle fermate",
+    "main": "build/index.js",
     "scripts": {
-        "test": "echo \"Error: no test specified\" && exit 1",
-        "dev": "nodemon",
-        "build": "rimraf ./build && tsc && git rev-parse --short HEAD > latest_commit.txt",
-        "start": "npm run build && electron build/index.js"
+        "prebuild": "rimraf ./build && tsc && git rev-parse --short HEAD > latest_commit.txt",
+        "pack": "npm run prebuild && electron-builder --dir",
+        "predist": "npm run prebuild && rimraf ./dist",
+        "dist": "npm run predist && electron-builder",
+        "start": "npm run predist && electron build/index.js"
     },
     "author": "Bitrey",
     "license": "ISC",
     "devDependencies": {
+        "@types/materialize-css": "^1.0.11",
         "@types/node": "^16.9.1",
         "electron": "^14.0.1",
+        "electron-builder": "^22.11.7",
         "nodemon": "^2.0.12",
         "rimraf": "^3.0.2",
         "ts-node": "^10.2.1",
@@ -22,9 +25,30 @@
     "dependencies": {
         "ffmpeg-static": "^4.4.0",
         "json-2-csv": "^3.14.4",
+        "materialize-css": "^1.0.0-rc.2",
         "moment": "^2.29.1",
         "node-worker-threads-pool": "^1.5.0",
         "trash": "^7.2.0",
         "winston": "^3.3.3"
+    },
+    "build": {
+        "appId": "it.bitrey.seta.tts",
+        "productName": "SETA TTS",
+        "win": {
+            "target": [
+                "nsis"
+            ],
+            "icon": "static/icon.ico"
+        },
+        "nsis": {
+            "installerIcon": "static/icon.ico",
+            "uninstallerIcon": "static/icon.ico",
+            "license": "LICENSE",
+            "runAfterFinish": true,
+            "oneClick": false,
+            "allowElevation": true,
+            "allowToChangeInstallationDirectory": true
+        },
+        "extends": null
     }
 }

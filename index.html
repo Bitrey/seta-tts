@@ -335,7 +335,7 @@
             <div class="file-field input-field">
               <div class="btn">
                 <span>Cartella di output</span>
-                <input type="file" webkitdirectory onclick="outputPath(event)" />
+                <input type="file" webkitdirectory id="output-path-input" />
               </div>
               <div class="file-path-wrapper">
                 <input class="file-path validate" id="output-path-txt" type="text" />
@@ -385,14 +385,16 @@
     </footer>
 
     <!-- Materialize CSS -->
-    <script src="./static/materialize.min.js"></script>
+    <!-- <script src="./static/materialize.min.js" defer></script> -->
 
     <!-- FilePond JS -->
     <!-- <script src="./static/filepond-it.js" defer></script>
         <script src="./static/filepond.js" defer></script> -->
 
     <!-- Custom JS -->
-    <script src="./static/renderer.js" defer></script>
+    <script defer>
+      require("./build/gui/renderer.js");
+    </script>
     <!-- <script src="./static/filepond-it.js"></script>
         <script src="./static/gui.js"></script> -->
   </body>

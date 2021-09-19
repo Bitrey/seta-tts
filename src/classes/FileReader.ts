@@ -25,7 +25,7 @@ export class FileReader {
     }
 
     public async csvToJson(csvContent?: string, options?: ISharedOptions): Promise<void> {
-        this.jsonContent = await csv2jsonAsync(csvContent || this.rawContent, {
+        this.jsonContent = await csv2jsonAsync(csvContent?.trim() || this.rawContent.trim(), {
             // visto che i CSV che ho ricevuto hanno come delimitatore un punto e virgola
             // al posto di una virgola, imposto ciò come opzione di default
             ...{ delimiter: { field: ";" } },
