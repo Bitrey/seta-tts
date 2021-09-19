@@ -1,13 +1,20 @@
-import { Encoder } from "./Encoder";
-import { TTS } from "./TTS";
+// import { Encoder } from "./classes/Encoder";
+// import { TTS } from "./classes/TTS";
 
-async function test() {
-    const tts = new TTS();
-    await tts.speak("Prossima fermata: Modena Autostazione.", "modena");
-    const encoder = new Encoder();
-    await encoder.encodeAll();
-}
+// DEBUG
+// import "./classes/FileReader";
+
+// DEBUG
+import "./gui/electron";
+// import { listVoices } from "./misc/listVoices";
+
+// listVoices();
+
+// async function test() {
+//     const tts = new TTS();
+//     await tts.speak("Prossima fermata: Duomo", "provaduomo");
+//     const encoder = new Encoder();
+//     await encoder.encodeAll();
+// }
 
 // test();
-
-import "./FileReader";

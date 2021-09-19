@@ -3,3 +3,4 @@ build/
 logs/*
 output/*
 output.tmp/*
+latest_commit.txt

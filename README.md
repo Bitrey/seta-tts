@@ -13,7 +13,7 @@ Questo programma non usa Loquendo, usa la versione CLI di Balabolka chiamata "ba
 
 Clona il repository con `git clone https://github.com/Bitrey/seta-tts.git` e installa tutte le dependencies con `npm install`.
 
-Per utilizzare il programma come sviluppatore (con hot reload) esegui `npm run dev`, per compilare una build `npm run build`, per compilare una build e farlo partire `npm start`.
+Per utilizzare il programma come sviluppatore (con hot reload) esegui `npm run dev`, per compilare una build `npm run build`, per compilare una build e farlo partire `npm run cli`.
 
 ### Classe `Encoder`
 
