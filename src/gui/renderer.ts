@@ -1,5 +1,9 @@
-import M from "materialize-css";
-import { AnyObj } from "../classes/AnyObj";
+// import process from "process";
+// const M = require(path.join(process.cwd(), "./resources/static/materialize.min.js"));
+
+interface AnyObj {
+    [key: string]: string;
+}
 
 interface State {
     canUploadFile: boolean;
@@ -16,11 +20,11 @@ const state: State = {
     outputPath: null
 };
 
-// Materialize CSS
-M.AutoInit();
-
 const { ipcRenderer } = require("electron");
 const path = require("path");
+
+// Materialize CSS
+// M.AutoInit();
 
 document.getElementById("close-btn")?.addEventListener("click", () => ipcRenderer.send("close"));
 
@@ -72,6 +76,7 @@ document.addEventListener("drop", event => {
     }
 
     const filePath = Array.from(event.dataTransfer.files).find(e => e.name.endsWith(".csv"))?.path;
+    if (!filePath) throw new Error("no filePath");
     csvInfo(`Caricamento "${path.basename(filePath)}"...`);
     ipcRenderer.send("file", filePath);
 });
@@ -162,7 +167,7 @@ function renderTable() {
     document.querySelector(".csv-upload-container")?.classList.add("hide");
     document.querySelector(".csv-file-container")?.classList.remove("hide");
 
-    accordion.open(0);
+    // accordion.open(0);
 }
 
 document.getElementById("output-path-input")?.addEventListener("click", outputPath);
@@ -180,7 +185,7 @@ function newFile() {
     (document.querySelector(".csv-file-container") as HTMLElement).classList.add("hide");
     (document.querySelector(".csv-upload-container") as HTMLElement).classList.remove("hide");
 
-    accordion.close(0);
+    // accordion.close(0);
 
     audioLog(null, true);
 
@@ -193,13 +198,13 @@ function newFile() {
 }
 document.getElementById("new-file")?.addEventListener("click", () => newFile());
 
-const accordion = M.Collapsible.getInstance(document.querySelector(".collapsible") as HTMLElement);
-accordion.options.onOpenStart = () => {
-    document.querySelectorAll(".accordion-arrow").forEach(e => e.classList.add("expanded"));
-};
-accordion.options.onCloseStart = () => {
-    document.querySelectorAll(".accordion-arrow").forEach(e => e.classList.remove("expanded"));
-};
+// const accordion = M.Collapsible.getInstance(document.querySelector(".collapsible") as HTMLElement);
+// accordion.options.onOpenStart = () => {
+//     document.querySelectorAll(".accordion-arrow").forEach(e => e.classList.add("expanded"));
+// };
+// accordion.options.onCloseStart = () => {
+//     document.querySelectorAll(".accordion-arrow").forEach(e => e.classList.remove("expanded"));
+// };
 
 ipcRenderer.send("latest-commit");
 ipcRenderer.on("latest-commit", (event, commit) => {

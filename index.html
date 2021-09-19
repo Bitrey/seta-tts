@@ -14,13 +14,12 @@
     <title>SETA TTS</title>
 
     <!-- Materialize CSS -->
-    <link rel="stylesheet" href="./static/materialize.min.css" />
-
-    <!-- Filepond CSS -->
-    <!-- <link href="./static/filepond.css" rel="stylesheet" /> -->
+    <!-- DEBUG ./build in debug -->
+    <link rel="stylesheet" href="./resources/static/materialize.min.css" />
 
     <!-- Custom CSS -->
-    <link rel="stylesheet" href="./static/gui.css" />
+    <!-- DEBUG ./build in debug -->
+    <link rel="stylesheet" href="./resources/static/gui.css" />
   </head>
   <body>
     <nav>
@@ -384,18 +383,17 @@
       </div>
     </footer>
 
-    <!-- Materialize CSS -->
-    <!-- <script src="./static/materialize.min.js" defer></script> -->
-
-    <!-- FilePond JS -->
-    <!-- <script src="./static/filepond-it.js" defer></script>
-        <script src="./static/filepond.js" defer></script> -->
-
     <!-- Custom JS -->
     <script defer>
+      // DEBUG - se in debug aggiungere prefisso ./build
+      console.log(require("fs").readdirSync(__dirname)); // DEBUG
       require("./build/gui/renderer.js");
     </script>
-    <!-- <script src="./static/filepond-it.js"></script>
-        <script src="./static/gui.js"></script> -->
+
+    <!-- <script defer>
+      const M = require("node_modules/materialize-css/dist/js/materialize.js");
+      // Materialize CSS
+      if (M) M.AutoInit();
+    </script> -->
   </body>
 </html>

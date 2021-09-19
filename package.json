@@ -10,10 +10,15 @@
         "dist": "npm run predist && electron-builder",
         "start": "npm run predist && electron build/index.js"
     },
-    "author": "Bitrey",
-    "license": "ISC",
+    "author": {
+        "name": "Bitrey",
+        "email": "info@bitrey.it"
+    },
+    "repository": {
+        "url": "https://github.com/Bitrey/seta-tts"
+    },
+    "license": "GNU",
     "devDependencies": {
-        "@types/materialize-css": "^1.0.11",
         "@types/node": "^16.9.1",
         "electron": "^14.0.1",
         "electron-builder": "^22.11.7",
@@ -34,6 +39,9 @@
     "build": {
         "appId": "it.bitrey.seta.tts",
         "productName": "SETA TTS",
+        "directories": {
+            "buildResources": "buildres"
+        },
         "win": {
             "target": [
                 "nsis"
@@ -47,8 +55,16 @@
             "runAfterFinish": true,
             "oneClick": false,
             "allowElevation": true,
-            "allowToChangeInstallationDirectory": true
+            "allowToChangeInstallationDirectory": true,
+            "perMachine": true
         },
-        "extends": null
+        "extraFiles": [
+            "index.html",
+            "build/gui/renderer.js"
+        ],
+        "extraResources": [
+            "bin",
+            "static"
+        ]
     }
 }
