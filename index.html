@@ -14,13 +14,10 @@
     <title>SETA TTS</title>
 
     <!-- Materialize CSS -->
-    <link rel="stylesheet" href="./static/materialize.min.css" />
-
-    <!-- Filepond CSS -->
-    <!-- <link href="./static/filepond.css" rel="stylesheet" /> -->
+    <link id="materialize-link" rel="stylesheet" href="./res/static/materialize.min.css" />
 
     <!-- Custom CSS -->
-    <link rel="stylesheet" href="./static/gui.css" />
+    <link id="gui-link" rel="stylesheet" href="./res/static/gui.css" />
   </head>
   <body>
     <nav>
@@ -86,8 +83,6 @@
       <div class="csv-upload-container hide">
         <h1 style="text-align: center">Carica CSV</h1>
 
-        <!-- We'll transform this input into a pond -->
-        <!-- <input type="file" class="filepond" /> -->
         <div id="file-drop">
           <p id="csv-info">Fai un drag and drop del CSV oppure</p>
           <a class="waves-effect waves-light btn" id="file-picker">Scegli file</a>
@@ -384,18 +379,11 @@
       </div>
     </footer>
 
-    <!-- Materialize CSS -->
-    <!-- <script src="./static/materialize.min.js" defer></script> -->
-
-    <!-- FilePond JS -->
-    <!-- <script src="./static/filepond-it.js" defer></script>
-        <script src="./static/filepond.js" defer></script> -->
-
     <!-- Custom JS -->
     <script defer>
+      // DEBUG - se in debug aggiungere prefisso ./build
+      // console.log(require("fs").readdirSync(__dirname)); // DEBUG
       require("./build/gui/renderer.js");
     </script>
-    <!-- <script src="./static/filepond-it.js"></script>
-        <script src="./static/gui.js"></script> -->
   </body>
 </html>

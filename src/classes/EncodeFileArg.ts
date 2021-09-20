@@ -1,7 +1,8 @@
-import { AnyObj } from "./AnyObj";
+import { EncodeOptions } from "./EncodeOptions";
 
 export interface EncodeFileArg {
-    encodeOptions: AnyObj;
+    pathToFfmpeg: string;
+    encodeOptions: EncodeOptions;
     fileInput: string;
     fileOutput: string;
 }

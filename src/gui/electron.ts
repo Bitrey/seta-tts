@@ -8,12 +8,15 @@ import { AnyObj } from "../classes/AnyObj";
 import { Encoder } from "../classes/Encoder";
 import moment from "moment";
 import { listVoices } from "../misc/listVoices";
+import { getResPath } from "../misc/getResPath";
 
 moment.locale("it");
 
 let mainWindow: BrowserWindow | null = null;
+export const getMainWindow = () => mainWindow;
 
 function createWindow() {
+    logger.info("resPath: " + getResPath());
     // Create the browser window.
     mainWindow = new BrowserWindow({
         height: 600,
@@ -21,6 +24,7 @@ function createWindow() {
             preload: path.join(__dirname, "preload.js"),
             nativeWindowOpen: true,
             nodeIntegration: true,
+            nodeIntegrationInWorker: true,
             contextIsolation: false
         },
         width: 800,
@@ -112,7 +116,7 @@ interface ConversionArg {
     ttsString: string;
     fileName: string;
     format: "mp3" | "wav";
-    bitrate: number;
+    bitrate: string;
     sampleRate: number;
     volume: number;
     outputPath: string;
@@ -137,12 +141,19 @@ ipcMain.on("start-conversion", async (event, arg) => {
         multithreadedEncoding
     }: ConversionArg = arg;
 
+    logger.info(arg);
+
     const correctPath = path.join(outputPath);
+
+    logger.info("outputPath " + outputPath);
 
     // vado di fiducia, non stai a modificare l'html quindi non valido i tuoi input
     const tts = new TTS();
+    event.reply("conversion-status", { msg: "TTS istanziato" });
+
     // DEBUG!! Considera "format", ora è hard coded wav
-    const encoder = new Encoder({ bitrate, sampleRate, volume } as any);
+    const encoder = new Encoder({ bitrate, channels: 1, sampleRate, volume });
+    event.reply("conversion-status", { msg: "Encoder istanziato" });
 
     event.reply("conversion-status", { msg: "Pulisco cartella temporanea..." });
     await encoder.clearTmpDir();

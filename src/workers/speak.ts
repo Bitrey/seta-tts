@@ -1,15 +1,17 @@
+import os from "os";
 import path from "path";
 import { spawn } from "child_process";
 import { parentPort } from "worker_threads";
 import { formatVariables } from "../misc/formatVariables";
 import { logger } from "../misc/logger";
 import { TTSFileArg } from "../classes/TTSFileArg";
+import { getResPath } from "../misc/getResPath";
 
 function speak(
     finalFormat: string,
     text: string,
     outputName: string,
-    outputPath = path.join(process.cwd(), "./output.tmp")
+    outputPath = path.join(os.tmpdir(), "./seta-tts/output.tmp")
 ): Promise<void> {
     return new Promise((resolve, reject) => {
         if (!outputName.endsWith(finalFormat)) outputName += "." + finalFormat;
@@ -18,7 +20,7 @@ function speak(
         logger.info(`Inizio TTS di "${outputName}" con output in "${fullPath}"...`);
         // console.log(readdirSync(path.join(fullPath, "../../")));
         const args = ["-t", text, "-n", "Loquendo Roberto", "-w", fullPath];
-        const child = spawn(path.join(process.cwd(), "./bin/balcon.exe"), args);
+        const child = spawn(path.join(getResPath(), "./bin/balcon.exe"), args);
 
         child.stdout.on("data", chunk => {
             logger.info(`stdout di "${outputName}": ${chunk.toString().trim()}`);
@@ -49,7 +51,7 @@ parentPort?.on(
         }
 
         const outputName = formatVariables(fileName, row);
-        const correctPath = outputPath || path.join(process.cwd(), "./output.tmp");
+        const correctPath = outputPath || path.join(os.tmpdir(), "./seta-tts/output.tmp");
 
         await speak(finalFormat, formatVariables(ttsString, row), outputName, correctPath);
         logger.debug(`TTS di "${outputName}" completato"`);
