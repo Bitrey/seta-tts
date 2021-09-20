@@ -31,7 +31,7 @@ export function listVoices(expectedVoice: string): Promise<VoicesReturn> {
         let output = "";
         let voices: string[] = [];
 
-        const child = spawn(join(process.cwd(), "./bin/balcon.exe"), ["-l"]);
+        const child = spawn(join(process.cwd(), "./resources/bin/balcon.exe"), ["-l"]);
 
         child.stdout.on("data", (chunk: Buffer) => {
             logger.info(`stdout in listVoices": ${chunk.toString().trim()}`);

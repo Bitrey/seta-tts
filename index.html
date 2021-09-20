@@ -14,11 +14,9 @@
     <title>SETA TTS</title>
 
     <!-- Materialize CSS -->
-    <!-- DEBUG ./build in debug -->
     <link rel="stylesheet" href="./resources/static/materialize.min.css" />
 
     <!-- Custom CSS -->
-    <!-- DEBUG ./build in debug -->
     <link rel="stylesheet" href="./resources/static/gui.css" />
   </head>
   <body>
@@ -85,8 +83,6 @@
       <div class="csv-upload-container hide">
         <h1 style="text-align: center">Carica CSV</h1>
 
-        <!-- We'll transform this input into a pond -->
-        <!-- <input type="file" class="filepond" /> -->
         <div id="file-drop">
           <p id="csv-info">Fai un drag and drop del CSV oppure</p>
           <a class="waves-effect waves-light btn" id="file-picker">Scegli file</a>
@@ -383,17 +379,16 @@
       </div>
     </footer>
 
+    <!-- Materialize CSS -->
+    <script>
+      require("./resources/static/materialize.min.js").AutoInit();
+    </script>
+
     <!-- Custom JS -->
     <script defer>
       // DEBUG - se in debug aggiungere prefisso ./build
       console.log(require("fs").readdirSync(__dirname)); // DEBUG
       require("./build/gui/renderer.js");
     </script>
-
-    <!-- <script defer>
-      const M = require("node_modules/materialize-css/dist/js/materialize.js");
-      // Materialize CSS
-      if (M) M.AutoInit();
-    </script> -->
   </body>
 </html>

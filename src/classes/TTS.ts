@@ -35,7 +35,7 @@ export class TTS {
             logger.info(`Inizio TTS di "${outputName}" con output in "${fullPath}"...`);
             // console.log(readdirSync(path.join(fullPath, "../../")));
             const args = ["-t", text, "-n", "Loquendo Roberto", "-w", fullPath];
-            const child = spawn(path.join(process.cwd(), "./bin/balcon.exe"), args);
+            const child = spawn(path.join(process.cwd(), "./resources/bin/balcon.exe"), args);
 
             child.stdout.on("data", chunk => {
                 logger.info(`stdout di "${outputName}": ${chunk.toString().trim()}`);

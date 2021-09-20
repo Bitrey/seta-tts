@@ -1,20 +1,4 @@
-// import { Encoder } from "./classes/Encoder";
-// import { TTS } from "./classes/TTS";
+import { loadEnv } from "./config/loadEnv";
+loadEnv(); // load env variables
 
-// DEBUG
-// import "./classes/FileReader";
-
-// DEBUG
 import "./gui/electron";
-// import { listVoices } from "./misc/listVoices";
-
-// listVoices();
-
-// async function test() {
-//     const tts = new TTS();
-//     await tts.speak("Prossima fermata: Duomo", "provaduomo");
-//     const encoder = new Encoder();
-//     await encoder.encodeAll();
-// }
-
-// test();

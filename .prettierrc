@@ -12,7 +12,7 @@
     "overrides": [
         {
             "files": "*.html",
-            "options": { "tabWidth": 2 }
+            "options": {"tabWidth": 2}
         }
     ],
     "trailingComma": "none"
