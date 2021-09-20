@@ -13,7 +13,8 @@ import { parentPort } from "worker_threads"; // just for typechecking
 import { EncodeFileArg } from "../classes/EncodeFileArg"; // just for typechecking
 
 const lPath = path.resolve(cwd(), "./build/misc/logger.js");
-const logger: winston.Logger | null = fs.existsSync(lPath) ? require(lPath) : null;
+let logger: winston.Logger | null = fs.existsSync(lPath) ? require(lPath) : null;
+if (typeof logger?.info !== "function") logger = null;
 
 function encodeFile({
     pathToFfmpeg,

@@ -41,6 +41,7 @@ export class Encoder {
         await Promise.all(
             fs.readdirSync(tmpDirPath).map(file => {
                 logger.debug(`Cestino "${file}"...`);
+                this.onConversionStart.emit("file-start", `Sto cestinando il file "${file}"`);
                 return shell.trashItem(path.join(tmpDirPath, file));
             })
         );
@@ -73,6 +74,7 @@ export class Encoder {
 
             if (fs.existsSync(outputName)) {
                 logger.info(`"${fName}" esiste già e verrà cestinato`);
+                this.onConversionStart.emit("file-start", `Sto cestinando il file "${fName}"`);
                 await shell.trashItem(outputName);
             }
 
@@ -181,6 +183,7 @@ export class Encoder {
 
                 if (fs.existsSync(outputName)) {
                     logger.info(`"${fName}" esiste gia' e verra' cestinato`);
+                    this.onConversionStart.emit("file-start", `Sto cestinando il file "${fName}"`);
                     await shell.trashItem(outputName);
                 }
 

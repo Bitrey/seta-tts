@@ -122,7 +122,10 @@ interface ConversionArg {
     outputPath: string;
     multithreadedTTS: boolean;
     multithreadedEncoding: boolean;
+    voice: "Loquendo Roberto" | "Loquendo Paola";
 }
+
+let selectedVoice = "Loquendo Roberto";
 
 ipcMain.on("start-conversion", async (event, arg) => {
     event.reply("conversion-status", { msg: "Inizio conversione..." });
@@ -138,8 +141,10 @@ ipcMain.on("start-conversion", async (event, arg) => {
         volume,
         outputPath,
         multithreadedTTS,
-        multithreadedEncoding
+        multithreadedEncoding,
+        voice
     }: ConversionArg = arg;
+    selectedVoice = voice || "Loquendo Roberto";
 
     logger.info(arg);
 
@@ -162,13 +167,13 @@ ipcMain.on("start-conversion", async (event, arg) => {
 
     if (multithreadedTTS) {
         logger.info("TTS multithread");
-        await tts.speakAllMultithread(format, ttsString, fileName, jsonContent);
+        await tts.speakAllMultithread(voice, format, ttsString, fileName, jsonContent);
     } else {
         logger.info("TTS singlethread");
         tts.onTTSStart.on("tts-start", str => {
             event.reply("conversion-status", { msg: str });
         });
-        await tts.speakAll(ttsString, fileName, jsonContent, format);
+        await tts.speakAll(voice, ttsString, fileName, jsonContent, format);
     }
 
     event.reply("conversion-status", { msg: "Codifica in corso... (potrebbe metterci un po')" });
@@ -200,7 +205,7 @@ ipcMain.on("start-conversion", async (event, arg) => {
 });
 
 ipcMain.on("get-voices", async event => {
-    event.reply("voices", await listVoices("Loquendo Roberto"));
+    event.reply("voices", await listVoices(selectedVoice));
 });
 
 ipcMain.on("close", e => {

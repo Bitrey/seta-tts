@@ -8,6 +8,7 @@ import { TTSFileArg } from "../classes/TTSFileArg";
 import { getResPath } from "../misc/getResPath";
 
 function speak(
+    voice: string,
     finalFormat: string,
     text: string,
     outputName: string,
@@ -41,7 +42,7 @@ function speak(
 
 parentPort?.on(
     "message",
-    async ({ ttsString, fileName, row, finalFormat, outputPath }: TTSFileArg) => {
+    async ({ voice, ttsString, fileName, row, finalFormat, outputPath }: TTSFileArg) => {
         if (!row || typeof row !== "object") {
             throw new Error("encodeOptions must be an object");
         } else if (typeof ttsString !== "string") {
@@ -53,7 +54,7 @@ parentPort?.on(
         const outputName = formatVariables(fileName, row);
         const correctPath = outputPath || path.join(os.tmpdir(), "./seta-tts/output.tmp");
 
-        await speak(finalFormat, formatVariables(ttsString, row), outputName, correctPath);
+        await speak(voice, finalFormat, formatVariables(ttsString, row), outputName, correctPath);
         logger.debug(`TTS di "${outputName}" completato"`);
 
         parentPort?.postMessage(fileName);

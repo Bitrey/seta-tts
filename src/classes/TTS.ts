@@ -24,6 +24,7 @@ export class TTS {
      * @param  {string} [outputPath] - percorso assoluto della cartella di output
      */
     speak(
+        voice: string,
         finalFormat: string,
         text: string,
         outputName: string,
@@ -32,10 +33,12 @@ export class TTS {
         return new Promise((resolve, reject) => {
             if (!outputName.endsWith(finalFormat)) outputName += "." + finalFormat;
 
+            logger.info("Voce selezionata: " + voice);
+
             const fullPath = path.join(outputPath, outputName);
             logger.info(`Inizio TTS di "${outputName}" con output in "${fullPath}"...`);
             // console.log(readdirSync(path.join(fullPath, "../../")));
-            const args = ["-t", text, "-n", "Loquendo Roberto", "-w", fullPath];
+            const args = ["-t", text, "-n", voice, "-w", fullPath];
             const child = spawn(path.join(getResPath(), "./bin/balcon.exe"), args);
 
             child.stdout.on("data", chunk => {
@@ -56,6 +59,7 @@ export class TTS {
     }
 
     async speakAll(
+        voice: string,
         ttsString: string,
         fileName: string,
         jsonContent: AnyObj[],
@@ -68,11 +72,12 @@ export class TTS {
             );
             const formattedStr = formatVariables(ttsString, jsonContent[i]);
             const formattedTitle = formatVariables(fileName, jsonContent[i]);
-            await this.speak(finalFormat, formattedStr, formattedTitle);
+            await this.speak(voice, finalFormat, formattedStr, formattedTitle);
         }
     }
 
     async speakAllMultithread(
+        voice: string,
         finalFormat: string,
         ttsString: string,
         fileName: string,
@@ -86,7 +91,8 @@ export class TTS {
         });
         await Promise.all(
             jsonContent.map(row => {
-                return pool.exec({ ttsString, fileName, row, finalFormat } as TTSFileArg);
+                const arg: TTSFileArg = { voice, ttsString, fileName, row, finalFormat };
+                return pool.exec(arg);
             })
         );
     }

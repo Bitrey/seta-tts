@@ -332,7 +332,8 @@ document.getElementById("convert")?.addEventListener("click", event => {
             .checked,
         multithreadedEncoding: (
             document.getElementById("multithreaded-encoding") as HTMLInputElement
-        ).checked
+        ).checked,
+        voice: (document.getElementById("voice-select") as HTMLInputElement).value
     });
 });
 

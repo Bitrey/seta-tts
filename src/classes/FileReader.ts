@@ -1,7 +1,12 @@
 import fs from "fs";
 import { csv2jsonAsync, ISharedOptions } from "json-2-csv";
+import { join } from "path";
+import { getResPath } from "../misc/getResPath";
 import { logger } from "../misc/logger";
-import { EventEmitter } from "stream";
+
+interface TranslationTable {
+    [abbrev: string]: string;
+}
 
 export class FileReader {
     public readonly filePath: string;
@@ -32,6 +37,55 @@ export class FileReader {
             ...(options || {})
         });
         this.columnNames = this.getColumnNames(this.jsonContent as any[]);
+
+        if (this.fixPronunciation()) {
+            logger.info("Alcune pronunce sono state risolte");
+        } else {
+            logger.info("Nessuna pronuncia risolta");
+        }
+    }
+
+    private fixPronunciation(translationTablePath?: string): boolean {
+        if (!this.jsonContent) {
+            throw new Error("jsonContent not loaded yet");
+        }
+
+        try {
+            const table = require(join(getResPath(), "./static/translationTable.json"));
+            const abbreviations = Object.keys(table);
+            for (const [index, row] of this.jsonContent.entries()) {
+                if (typeof row === "object" && row !== null) {
+                    for (const prop in row) {
+                        while (typeof this.jsonContent[index][prop] === "string") {
+                            const foundAbbrev = abbreviations.find(v =>
+                                (row[prop] as string)
+                                    .trim()
+                                    .split(" ")
+                                    .some((e: unknown) =>
+                                        typeof e === "string" ? e.trim().includes(v) : false
+                                    )
+                            );
+                            if (!foundAbbrev) break;
+                            const newWord = (row[prop] as string)
+                                .trim()
+                                .split(" ")
+                                .map((e: unknown) =>
+                                    typeof e === "string"
+                                        ? e.trim().includes(foundAbbrev)
+                                            ? e.trim().replace(foundAbbrev, table[foundAbbrev])
+                                            : e
+                                        : e
+                                );
+                            this.jsonContent[index][prop] = newWord.join(" ");
+                        }
+                    }
+                }
+            }
+            return true;
+        } catch (err) {
+            logger.error(err);
+            return false;
+        }
     }
 
     /**
