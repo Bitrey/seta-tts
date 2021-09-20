@@ -1,4 +1,2 @@
-import { loadEnv } from "./config/loadEnv";
-loadEnv(); // load env variables
-
+import "./config";
 import "./gui/electron";

@@ -1,5 +1,6 @@
 import { spawn } from "child_process";
 import { join } from "path";
+import { getResPath } from "./getResPath";
 import { logger } from "./logger";
 
 interface VoicesReturn {
@@ -31,7 +32,7 @@ export function listVoices(expectedVoice: string): Promise<VoicesReturn> {
         let output = "";
         let voices: string[] = [];
 
-        const child = spawn(join(process.cwd(), "./resources/bin/balcon.exe"), ["-l"]);
+        const child = spawn(join(getResPath(), "./bin/balcon.exe"), ["-l"]);
 
         child.stdout.on("data", (chunk: Buffer) => {
             logger.info(`stdout in listVoices": ${chunk.toString().trim()}`);

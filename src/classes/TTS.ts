@@ -7,6 +7,7 @@ import { formatVariables } from "../misc/formatVariables";
 import { logger } from "../misc/logger";
 import { AnyObj } from "./AnyObj";
 import { TTSFileArg } from "./TTSFileArg";
+import { getResPath } from "../misc/getResPath";
 
 export class TTS {
     public readonly onTTSStart: EventEmitter;
@@ -26,7 +27,7 @@ export class TTS {
         finalFormat: string,
         text: string,
         outputName: string,
-        outputPath = path.join(process.cwd(), "./output.tmp")
+        outputPath = path.join(os.tmpdir(), "./seta-tts/output.tmp")
     ): Promise<void> {
         return new Promise((resolve, reject) => {
             if (!outputName.endsWith(finalFormat)) outputName += "." + finalFormat;
@@ -35,7 +36,7 @@ export class TTS {
             logger.info(`Inizio TTS di "${outputName}" con output in "${fullPath}"...`);
             // console.log(readdirSync(path.join(fullPath, "../../")));
             const args = ["-t", text, "-n", "Loquendo Roberto", "-w", fullPath];
-            const child = spawn(path.join(process.cwd(), "./resources/bin/balcon.exe"), args);
+            const child = spawn(path.join(getResPath(), "./bin/balcon.exe"), args);
 
             child.stdout.on("data", chunk => {
                 logger.info(`stdout di "${outputName}": ${chunk.toString().trim()}`);

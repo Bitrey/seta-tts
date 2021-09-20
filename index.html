@@ -14,10 +14,10 @@
     <title>SETA TTS</title>
 
     <!-- Materialize CSS -->
-    <link rel="stylesheet" href="./resources/static/materialize.min.css" />
+    <link id="materialize-link" rel="stylesheet" href="./res/static/materialize.min.css" />
 
     <!-- Custom CSS -->
-    <link rel="stylesheet" href="./resources/static/gui.css" />
+    <link id="gui-link" rel="stylesheet" href="./res/static/gui.css" />
   </head>
   <body>
     <nav>
@@ -379,15 +379,10 @@
       </div>
     </footer>
 
-    <!-- Materialize CSS -->
-    <script>
-      require("./resources/static/materialize.min.js").AutoInit();
-    </script>
-
     <!-- Custom JS -->
     <script defer>
       // DEBUG - se in debug aggiungere prefisso ./build
-      console.log(require("fs").readdirSync(__dirname)); // DEBUG
+      // console.log(require("fs").readdirSync(__dirname)); // DEBUG
       require("./build/gui/renderer.js");
     </script>
   </body>

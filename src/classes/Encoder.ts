@@ -2,16 +2,19 @@ import fs from "fs";
 import os from "os";
 import path from "path";
 import { spawn } from "child_process";
-import trash from "trash";
+// import trash from "trash";
+import { shell } from "electron";
 import { EventEmitter } from "stream";
 import { StaticPool } from "node-worker-threads-pool";
 import { logger } from "../misc/logger";
-import { AnyObj } from "./AnyObj";
 import { EncodeFileArg } from "./EncodeFileArg";
+import { EncodeOptions } from "./EncodeOptions";
+import { cwd } from "process";
+import { getResPath } from "../misc/getResPath";
 
 export class Encoder {
-    public encodeOptions: AnyObj;
-    public static readonly pathToFfmpeg: string = require("ffmpeg-static");
+    public encodeOptions: EncodeOptions;
+    public static readonly pathToFfmpeg = path.join(getResPath(), "./bin/ffmpeg.exe");
     public static readonly defaultEncodeOptions = {
         bitrate: "24k",
         sampleRate: 11025,
@@ -20,20 +23,16 @@ export class Encoder {
     };
     public readonly onConversionStart: EventEmitter;
 
-    constructor(
-        settings: AnyObj,
-        defaultSettingsPath = path.join(process.cwd(), "./settings.json")
-    ) {
+    constructor(settings: EncodeOptions) {
         this.encodeOptions = {
             ...Encoder.defaultEncodeOptions,
-            ...require(defaultSettingsPath).encoding,
-            settings
+            ...settings
         };
         this.onConversionStart = new EventEmitter();
         this.prepareFolders();
     }
 
-    public async clearTmpDir(tmpDirPath = path.join(process.cwd(), "./output.tmp")) {
+    public async clearTmpDir(tmpDirPath = path.join(os.tmpdir(), "./seta-tts/output.tmp")) {
         if (!fs.existsSync(tmpDirPath)) {
             logger.debug(`tmpDirPath "${tmpDirPath} non esistente`);
             return;
@@ -42,18 +41,18 @@ export class Encoder {
         await Promise.all(
             fs.readdirSync(tmpDirPath).map(file => {
                 logger.debug(`Cestino "${file}"...`);
-                return trash(path.join(tmpDirPath, file));
+                return shell.trashItem(path.join(tmpDirPath, file));
             })
         );
     }
 
     private prepareFolders(inputDirName = "output.tmp", outputDirName = "output") {
-        const inputPath = path.join(process.cwd(), "./", inputDirName);
+        const inputPath = path.join(os.tmpdir(), "./seta-tts/", inputDirName);
         if (!fs.existsSync(inputPath)) {
             logger.debug(`Creo la cartella di input (tmp) in "${inputPath}"`);
             fs.mkdirSync(inputPath);
         }
-        const outputPath = path.join(process.cwd(), "./", outputDirName);
+        const outputPath = path.join(os.tmpdir(), "./seta-tts/", outputDirName);
         if (!fs.existsSync(outputPath)) {
             logger.debug(`Creo la cartella di output in "${outputPath}"`);
             fs.mkdirSync(outputPath);
@@ -74,7 +73,7 @@ export class Encoder {
 
             if (fs.existsSync(outputName)) {
                 logger.info(`"${fName}" esiste già e verrà cestinato`);
-                await trash(outputName);
+                await shell.trashItem(outputName);
             }
 
             const args = [
@@ -162,22 +161,37 @@ export class Encoder {
         const files = this.getFileNames(inputDir || undefined);
         this.startConversionLog(inputDir || inputPath, files);
 
-        const workerPath = path.resolve(__dirname, "../workers/encodeFile.js");
+        const debugPath = path.resolve(__dirname, "../workers/encodeFile.js");
+        const workerPath = fs.existsSync(debugPath)
+            ? debugPath
+            : path.resolve(cwd(), "./build/workers/encodeFile.js");
         const pool = new StaticPool({
             size: poolSize || os.cpus().length,
             task: workerPath
         });
         await Promise.all(
-            files.map(file => {
+            files.map(async file => {
                 const fileInput = path.join(inputDir || inputPath, file);
                 const fileName = path.basename(fileInput);
                 const fileOutput = path.join(outputDir || outputPath, fileName);
+
+                // Qua che hai accesso alla shell, cestina file già esistenti
+                const outputName = fileOutput.replace(/\.[^/.]+$/, "") + path.extname(fileOutput);
+                const fName = path.basename(outputName);
+
+                if (fs.existsSync(outputName)) {
+                    logger.info(`"${fName}" esiste gia' e verra' cestinato`);
+                    await shell.trashItem(outputName);
+                }
+
                 // logger.debug(`Pool converte il file "${fileInput}" verso output "${fileOutput}"`);
-                return pool.exec({
+                const args: EncodeFileArg = {
+                    pathToFfmpeg: Encoder.pathToFfmpeg,
                     encodeOptions: this.encodeOptions,
                     fileInput,
                     fileOutput
-                } as EncodeFileArg);
+                };
+                return pool.exec(args);
             })
         );
 

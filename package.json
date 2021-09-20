@@ -8,7 +8,7 @@
         "pack": "npm run prebuild && electron-builder --dir",
         "predist": "npm run prebuild && rimraf ./dist",
         "dist": "npm run predist && electron-builder",
-        "start": "npm run predist && electron build/index.js"
+        "start": "npm run prebuild && electron build/index.js"
     },
     "author": {
         "name": "Bitrey",
@@ -29,7 +29,6 @@
     },
     "dependencies": {
         "dotenv": "^10.0.0",
-        "ffmpeg-static": "^4.4.0",
         "json-2-csv": "^3.14.4",
         "materialize-css": "^1.0.0-rc.2",
         "moment": "^2.29.1",
@@ -47,11 +46,11 @@
             "target": [
                 "nsis"
             ],
-            "icon": "static/icon.ico"
+            "icon": "res/static/icon.ico"
         },
         "nsis": {
-            "installerIcon": "static/icon.ico",
-            "uninstallerIcon": "static/icon.ico",
+            "installerIcon": "res/static/icon.ico",
+            "uninstallerIcon": "res/static/icon.ico",
             "license": "LICENSE",
             "runAfterFinish": true,
             "oneClick": false,
@@ -61,11 +60,11 @@
         },
         "extraFiles": [
             "index.html",
-            "build/gui/renderer.js"
+            "build/gui/renderer.js",
+            "build/workers/**/*"
         ],
         "extraResources": [
-            "resources/bin",
-            "resources/static"
+            "res/**/*"
         ]
     }
 }

@@ -1,5 +1,27 @@
-// import process from "process";
-// const M = require(path.join(process.cwd(), "./resources/static/materialize.min.js"));
+import { ipcRenderer } from "electron";
+import path from "path";
+import fs from "fs";
+
+const mDebugPath = path.join(__dirname, "../../res/static/materialize.min.js");
+const isDebug = fs.existsSync(mDebugPath);
+
+(
+    require(isDebug
+        ? mDebugPath
+        : path.join(process.resourcesPath, "./res/static/materialize.min.js")) as any
+).AutoInit();
+
+function addCSS() {
+    const materializeLink = document.createElement("link");
+    materializeLink.rel = "stylesheet";
+    materializeLink.href = path.join(process.resourcesPath, "./res/static/materialize.min.css");
+    document.querySelector("head")?.appendChild(materializeLink);
+    const guiLink = document.createElement("link");
+    guiLink.rel = "stylesheet";
+    guiLink.href = path.join(process.resourcesPath, "./res/static/gui.css");
+    document.querySelector("head")?.appendChild(guiLink);
+}
+if (!isDebug) addCSS();
 
 interface AnyObj {
     [key: string]: string;
@@ -13,18 +35,12 @@ interface State {
     outputPath: string | null;
 }
 const state: State = {
-    canUploadFile: true,
+    canUploadFile: false,
     fileName: null,
     columnNames: null,
     jsonContent: null,
     outputPath: null
 };
-
-const { ipcRenderer } = require("electron");
-const path = require("path");
-
-// Materialize CSS
-// M.AutoInit();
 
 document.getElementById("close-btn")?.addEventListener("click", () => ipcRenderer.send("close"));
 
@@ -51,7 +67,6 @@ ipcRenderer.on("file", (event, { fileName, columnNames, jsonContent }) => {
     renderTable();
 });
 
-//
 document.getElementById("file-picker")?.addEventListener("click", () => {
     ipcRenderer.send("choose-file");
 });
@@ -197,14 +212,6 @@ function newFile() {
     state.canUploadFile = true;
 }
 document.getElementById("new-file")?.addEventListener("click", () => newFile());
-
-// const accordion = M.Collapsible.getInstance(document.querySelector(".collapsible") as HTMLElement);
-// accordion.options.onOpenStart = () => {
-//     document.querySelectorAll(".accordion-arrow").forEach(e => e.classList.add("expanded"));
-// };
-// accordion.options.onCloseStart = () => {
-//     document.querySelectorAll(".accordion-arrow").forEach(e => e.classList.remove("expanded"));
-// };
 
 ipcRenderer.send("latest-commit");
 ipcRenderer.on("latest-commit", (event, commit) => {
@@ -390,4 +397,6 @@ ipcRenderer.on("voices", (event, { expectedVoice, voices, hasVoice }: VoicesRetu
         .forEach(e => e.classList.remove("hide"));
     document.getElementById("voices-loading")?.classList.add("hide");
     document.querySelector(".csv-upload-container")?.classList.remove("hide");
+
+    state.canUploadFile = true;
 });

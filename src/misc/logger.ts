@@ -1,10 +1,18 @@
 import { transports, createLogger, format } from "winston";
 const { combine, timestamp, colorize, errors, label, printf, splat, json, metadata } = format;
 
+import fs from "fs";
+import os from "os";
 import path from "path";
 
-const combinedLogsFile = path.join("./logs/combined.log");
-const errorsLogsFile = path.join("./logs/error.log");
+const baseDir = path.join(os.tmpdir(), "./seta-tts/logs");
+
+if (!fs.existsSync(baseDir)) {
+    fs.mkdirSync(baseDir);
+}
+
+const combinedLogsFile = path.join(baseDir, "./combined.log");
+const errorsLogsFile = path.join(baseDir, "./error.log");
 
 const errorStackFormat = format(info => {
     if (info instanceof Error) {
