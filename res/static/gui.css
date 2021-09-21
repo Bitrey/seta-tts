@@ -3,6 +3,21 @@
     text-overflow: ellipsis;
 }
 
+:not(li),
+:not(input):not(textarea),
+:not(input):not(textarea)::after,
+:not(input):not(textarea)::before {
+    -webkit-user-select: none;
+    user-select: none;
+    cursor: default;
+}
+input,
+button,
+textarea,
+:focus {
+    outline: none;
+}
+
 body {
     background-color: #fafafa;
     padding-bottom: 4rem;
@@ -101,4 +116,14 @@ body {
 #voices-ul {
     margin-top: 0.5rem;
     margin-left: 1rem;
+}
+
+.card-content {
+    padding: 2rem !important;
+}
+
+#install-voice-status {
+    margin-top: 1rem;
+    font-size: 1.2rem;
+    font-weight: 600;
 }

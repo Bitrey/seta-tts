@@ -1,6 +1,7 @@
 import { ipcRenderer } from "electron";
 import path from "path";
 import fs from "fs";
+import { VoicesReturn } from "../classes/Voices";
 
 const mDebugPath = path.join(__dirname, "../../res/static/materialize.min.js");
 const isDebug = fs.existsSync(mDebugPath);
@@ -33,13 +34,15 @@ interface State {
     columnNames: string[] | null;
     jsonContent: AnyObj[] | null;
     outputPath: string | null;
+    voiceCurrentlyInstalling: string | null;
 }
 const state: State = {
     canUploadFile: false,
     fileName: null,
     columnNames: null,
     jsonContent: null,
-    outputPath: null
+    outputPath: null,
+    voiceCurrentlyInstalling: null
 };
 
 document.getElementById("close-btn")?.addEventListener("click", () => ipcRenderer.send("close"));
@@ -218,39 +221,26 @@ ipcRenderer.on("latest-commit", (event, commit) => {
     (document.getElementById("latest-commit") as HTMLElement).textContent = commit;
 });
 
-function formatVariables(str: string) {
-    if (!state.jsonContent) {
-        throw new Error("jsonContent not loaded yet");
-    }
-    const matches = str.match(/\{(.*?)\}/g);
-    if (!matches) return str;
-    for (const match of matches) {
-        const m = match.replace(/\{\ *|\ *}/g, "");
-        if (m in state.jsonContent[0]) {
-            str = str.replace(match, state.jsonContent[0][m]);
-        }
-    }
-    console.log("formatVariables", matches, str);
-    return str;
+async function formatVariables(str: string): Promise<string> {
+    const { jsonContent } = state;
+    return await ipcRenderer.invoke("format-string", str, jsonContent && jsonContent[0]);
 }
 
 const ttsStringPreview = document.getElementById("tts-string-preview") as HTMLElement;
-document.getElementById("tts-string-input")?.addEventListener("input", event => {
+document.getElementById("tts-string-input")?.addEventListener("input", async event => {
     const { value } = event.target as any;
     (document.getElementById("tts-string-preview-container") as HTMLElement).style.visibility =
         !!value ? "visible" : "hidden";
-    ttsStringPreview.textContent = formatVariables(value);
+    ttsStringPreview.textContent = await formatVariables(value);
 });
 
-// audio-format-input
-
 const fileNamePreview = document.getElementById("file-name-preview") as HTMLElement;
-document.getElementById("file-name-input")?.addEventListener("input", event => {
+document.getElementById("file-name-input")?.addEventListener("input", async event => {
     const { value } = event.target as any;
     (document.getElementById("file-name-preview-container") as HTMLElement).style.visibility =
         !!value ? "visible" : "hidden";
     const format = (document.getElementById("audio-format-input") as HTMLInputElement).value;
-    fileNamePreview.textContent = `${formatVariables(value)}.${format}`;
+    fileNamePreview.textContent = `${await formatVariables(value)}.${format}`;
 });
 
 document.getElementById("audio-format-input")?.addEventListener("change", event => {
@@ -351,53 +341,139 @@ ipcRenderer.on("conversion-status", (event, data: ConversionStatus) => {
     }
 });
 
-interface VoicesReturn {
-    expectedVoice: string;
-    voices: Voices;
-    hasVoice: boolean;
-}
-interface Voices {
-    [SAPI: string]: string[];
-}
-
 ipcRenderer.send("get-voices");
-ipcRenderer.on("voices", (event, { expectedVoice, voices, hasVoice }: VoicesReturn) => {
-    console.log("Voices", { expectedVoice, voices, hasVoice });
+ipcRenderer.on(
+    "voices",
+    (event, { expectedVoices, voices, hasVoices, missingVoices, voicesArr, msg }: VoicesReturn) => {
+        console.log("Voices", { expectedVoices, voices, hasVoices, missingVoices, msg });
 
-    (document.getElementById("voice-name") as HTMLElement).textContent = expectedVoice;
+        // (document.getElementById("voice-name") as HTMLElement).textContent =
+        //     expectedVoices.join(", ");
 
-    const ul = document.createElement("ul");
-    ul.classList.add("collection");
-    ul.classList.add("with-header");
+        const ul = document.createElement("ul");
+        ul.classList.add("collection");
+        ul.classList.add("with-header");
 
-    let found = false;
+        const found: string[] = [];
 
-    for (const sapi in voices) {
-        const header = document.createElement("li");
-        header.classList.add("collection-header");
-        header.style.fontWeight = "600";
-        header.textContent = sapi;
-        ul.appendChild(header);
+        for (const sapi in voices) {
+            const header = document.createElement("li");
+            header.classList.add("collection-header");
+            header.style.fontWeight = "600";
+            header.textContent = sapi;
+            ul.appendChild(header);
 
-        for (const voice of voices[sapi]) {
-            const item = document.createElement("li");
-            item.classList.add("collection-item");
-            item.textContent = voice;
-            if (!found && voice === expectedVoice) {
-                found = true;
-                item.style.fontWeight = "600";
-                item.style.textDecoration = "underline";
+            for (const voice of voices[sapi]) {
+                const item = document.createElement("li");
+                item.classList.add("collection-item");
+                item.textContent = voice;
+                if (!found.includes(voice) && expectedVoices.includes(voice)) {
+                    found.push(voice);
+                    item.style.fontWeight = "600";
+                    item.style.textDecoration = "underline";
+                }
+                ul.appendChild(item);
             }
-            ul.appendChild(item);
+        }
+        document.getElementById("voices-list")?.appendChild(ul);
+
+        const voiceMsg = document.querySelector(".voice-msg");
+        if (!voiceMsg) throw new Error("no voiceMsg elem");
+
+        voiceMsg.textContent = msg;
+        if (missingVoices.length > 0) {
+            const strong = document.createElement("strong");
+            strong.textContent = missingVoices.join(", ");
+            voiceMsg.textContent += ": ";
+            voiceMsg.appendChild(strong);
+
+            for (const voice of missingVoices) {
+                const elem = document.createElement("a");
+                elem.className = "waves-effect waves-light btn install-voice-btn";
+                elem.style.marginRight = "1rem";
+                elem.textContent = "Installa " + voice;
+                elem.dataset.voiceName = voice; // aggiungi voice-name="nome voce"
+                elem.onclick = e => installVoice(voice);
+                const container = document.getElementById("install-voices-container");
+                if (!container) throw new Error("no install-voices-container");
+                container.appendChild(elem);
+                container.classList.remove("hide");
+            }
+        }
+
+        document
+            .querySelectorAll(hasVoices ? ".voice-ok" : ".voice-error")
+            .forEach(e => e.classList.remove("hide"));
+        document.getElementById("voices-loading")?.classList.add("hide");
+        document.querySelector(".csv-upload-container")?.classList.remove("hide");
+
+        state.canUploadFile = true;
+    }
+);
+
+function installVoice(voiceName: string) {
+    installVoiceBtnStatus(true);
+    ipcRenderer.send("install-voice", voiceName);
+    state.voiceCurrentlyInstalling = voiceName;
+}
+
+const voiceStatusElem = document.getElementById("install-voice-status");
+if (!voiceStatusElem) throw new Error("no install-voice-status elem");
+
+interface InstallVoiceStatus {
+    msg: string;
+    canInstall?: boolean;
+    finished?: boolean;
+    success?: boolean;
+}
+
+const selectVoicePathElem = document.getElementById("select-voice-path");
+if (!selectVoicePathElem) throw new Error("no select-voice-path elem");
+
+function installVoiceBtnStatus(disabled: boolean, disableInstalled = false) {
+    document.querySelectorAll(".install-voice-btn").forEach(e => {
+        disabled ? e.setAttribute("disabled", "true") : e.removeAttribute("disabled");
+    });
+    if (disableInstalled) {
+        document
+            .querySelector(`[data-voice-name='${state.voiceCurrentlyInstalling}']`)
+            ?.setAttribute("disabled", "true");
+    }
+}
+
+ipcRenderer.on(
+    "install-voice-status",
+    (event, { finished, msg, canInstall, success }: InstallVoiceStatus) => {
+        voiceStatusElem.textContent = msg;
+        if (finished) {
+            selectVoicePathElem.classList.add("hide");
+            state.voiceCurrentlyInstalling = null;
+            installVoiceBtnStatus(false, !!success);
+            if (success) {
+                state.canUploadFile = false;
+                (document.getElementById("voices-list") as HTMLElement).innerHTML = "";
+                document.querySelectorAll(".voice-ok").forEach(e => e.classList.add("hide"));
+                document.querySelectorAll(".voice-error").forEach(e => e.classList.add("hide"));
+                document.getElementById("voices-loading")?.classList.remove("hide");
+                document.querySelector(".csv-upload-container")?.classList.add("hide");
+                (document.getElementById("install-voices-container") as HTMLElement).innerHTML = "";
+                ipcRenderer.send("get-voices");
+            }
+        } else if (canInstall) {
+            selectVoicePathElem.classList.remove("hide");
+            installVoiceBtnStatus(true);
         }
     }
-    document.getElementById("voices-list")?.appendChild(ul);
+);
 
-    document
-        .querySelectorAll(hasVoice ? ".voice-ok" : ".voice-error")
-        .forEach(e => e.classList.remove("hide"));
-    document.getElementById("voices-loading")?.classList.add("hide");
-    document.querySelector(".csv-upload-container")?.classList.remove("hide");
+selectVoicePathElem.addEventListener("click", () => {
+    ipcRenderer.send("voice-installed");
+});
 
-    state.canUploadFile = true;
+document.getElementById("open-console")?.addEventListener("click", () => {
+    ipcRenderer.send("open-console");
+});
+
+document.getElementById("open-logs")?.addEventListener("click", () => {
+    ipcRenderer.send("open-logs");
 });

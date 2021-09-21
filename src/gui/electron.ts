@@ -1,14 +1,18 @@
 import { app, BrowserWindow, ipcMain, dialog, shell } from "electron";
-import * as path from "path";
+import { copyFileSync, existsSync, fstat, readdirSync, readFileSync, unlinkSync } from "fs";
+import path from "path";
+import moment from "moment";
 import { FileReader } from "../classes/FileReader";
 import { logger } from "../misc/logger";
-import { readFileSync } from "fs";
 import { TTS } from "../classes/TTS";
 import { AnyObj } from "../classes/AnyObj";
 import { Encoder } from "../classes/Encoder";
-import moment from "moment";
-import { listVoices } from "../misc/listVoices";
 import { getResPath } from "../misc/getResPath";
+import { Voices } from "../classes/Voices";
+import { Substitutions } from "../classes/Substitutions";
+import { tmpdir } from "os";
+// i types di questo modulo sono orrendi quindi usa require
+const { elevate } = require("node-windows");
 
 moment.locale("it");
 
@@ -38,7 +42,7 @@ function createWindow() {
     mainWindow.loadFile(path.join(process.cwd(), "./index.html"));
 
     // Open the DevTools.
-    mainWindow.webContents.openDevTools();
+    // mainWindow.webContents.openDevTools();
 }
 
 // This method will be called when Electron has finished
@@ -47,7 +51,7 @@ function createWindow() {
 app.on("ready", () => {
     createWindow();
 
-    app.on("activate", function () {
+    app.on("activate", () => {
         // On macOS it's common to re-create a window in the app when the
         // dock icon is clicked and there are no other windows open.
         if (BrowserWindow.getAllWindows().length === 0) createWindow();
@@ -102,7 +106,7 @@ ipcMain.on("output-path", async (event, args) => {
 ipcMain.on("latest-commit", event => {
     let commit = "-";
     try {
-        commit = readFileSync(path.join(process.cwd(), "latest_commit.txt"), {
+        commit = readFileSync(path.join(getResPath(), "./static/latest_commit.txt"), {
             encoding: "utf-8"
         });
     } catch (err) {
@@ -205,7 +209,110 @@ ipcMain.on("start-conversion", async (event, arg) => {
 });
 
 ipcMain.on("get-voices", async event => {
-    event.reply("voices", await listVoices(selectedVoice));
+    const v = new Voices();
+    event.reply("voices", await v.listVoices());
+});
+
+ipcMain.on("install-voice", async (event, voiceName: string) => {
+    try {
+        event.reply("install-voice-status", { msg: "Controllo se la voce è già installata..." });
+
+        const v = new Voices();
+        if (await v.isVoiceInstalled(voiceName)) {
+            return event.reply("install-voice-status", {
+                msg: `La voce "${voiceName}" è già installata`,
+                finished: true
+            });
+        }
+
+        const setupPath = path.join(getResPath(), `./bin/${voiceName.split("Loquendo ")[1]}.exe`);
+        logger.info(`apro setup di "${voiceName}" in ${setupPath}`);
+
+        event.reply("install-voice-status", { msg: `Apro l'eseguibile...` });
+        await shell.openExternal(setupPath);
+
+        event.reply("install-voice-status", {
+            msg: "Una volta installata, premi il tasto sottostante (se non lo capisco da solo, ti chiederò la cartella di installazione)",
+            canInstall: true
+        });
+    } catch (err) {
+        logger.error(err);
+        event.reply("install-voice-status", {
+            msg: "Si è verificato un errore: " + err,
+            finished: true
+        });
+    }
+});
+
+// const isAdmin = () => new Promise(resolve => isAdminUser(resolve));
+const runAsAdmin = (cmd: string) => new Promise(resolve => elevate(cmd, undefined, resolve));
+
+ipcMain.on("voice-installed", async event => {
+    if (!mainWindow) throw new Error("no mainWindow for voice-installed");
+
+    let installPath = getInstallPath();
+    if (!readdirSync(path.join(installPath, "../")).includes("LoqTTS6.dll")) {
+        const { canceled, filePaths } = await dialog.showOpenDialog(mainWindow, {
+            defaultPath: getInstallPath(),
+            title: "Cartella di installazione di LoqTTS6.dll",
+            filters: [{ name: "LoqTTS6", extensions: ["dll"] }],
+            properties: ["openFile", "showHiddenFiles", "dontAddToRecent"]
+        });
+        if (canceled) return;
+        installPath = filePaths[0];
+    }
+
+    logger.info("Loq path selezionato: " + installPath);
+
+    const f = path.resolve(getResPath(), "./bin/LoqTTS6.dll");
+    try {
+        event.reply("install-voice-status", {
+            msg: "Ho bisogno dei permessi per accedere al file"
+        });
+        // DEBUG
+        // await runAsAdmin(`xcopy ${f} ${fileDir} /y /q`);
+        unlinkSync(installPath);
+        copyFileSync(f, installPath);
+        logger.info("LoqTTS6 success");
+        event.reply("install-voice-status", {
+            msg: "Voce installata!",
+            finished: true,
+            success: true
+        });
+    } catch (err) {
+        logger.error(err);
+        event.reply("install-voice-status", {
+            msg:
+                err &&
+                typeof (err as any).toString === "function" &&
+                ((err as any).toString() as string).includes("EPERM")
+                    ? "Non ho i permessi per accedere al file :("
+                    : `Errore durante l'accesso al file LoqTTS6: ${err}`,
+            finished: true
+        });
+    }
+});
+
+ipcMain.handle("format-string", (event, str: string, obj: AnyObj) => {
+    return Substitutions.formatString(str, obj);
+});
+
+function getInstallPath(): string {
+    let fPath = path.resolve("C:\\Program Files (x86)\\Loquendo\\LTTS\\LoqTTS6.dll");
+    do {
+        logger.info("Loq install path: " + fPath);
+        if (existsSync(fPath)) return fPath;
+        else fPath = path.resolve(fPath, "../");
+    } while (fPath !== path.resolve("C:/"));
+    return fPath;
+}
+
+ipcMain.on("open-console", e => {
+    mainWindow?.webContents.openDevTools();
+});
+
+ipcMain.on("open-logs", e => {
+    shell.openPath(path.join(tmpdir(), "./seta-tts/logs"));
 });
 
 ipcMain.on("close", e => {
