@@ -25,6 +25,8 @@
         <div class="container">
           <a href="#" class="brand-logo" tabindex="-1">SETA TTS</a>
           <ul id="nav-mobile" class="right hide-on-med-and-down">
+            <li><a href="#" id="open-logs">Cartella log</a></li>
+            <li><a href="#" id="open-console">Apri console</a></li>
             <li><a href="#" id="close-btn">Chiudi</a></li>
           </ul>
         </div>
@@ -49,8 +51,7 @@
                   width="24px"
                   height="24px"
                   viewBox="0 0 100 100"
-                  preserveAspectRatio="xMidYMid"
-                >
+                  preserveAspectRatio="xMidYMid">
                   <circle
                     cx="50"
                     cy="50"
@@ -58,16 +59,14 @@
                     stroke="#ee6e73"
                     stroke-width="10"
                     r="35"
-                    stroke-dasharray="164.93361431346415 56.97787143782138"
-                  >
+                    stroke-dasharray="164.93361431346415 56.97787143782138">
                     <animateTransform
                       attributeName="transform"
                       type="rotate"
                       repeatCount="indefinite"
                       dur="1s"
                       values="0 50 50;360 50 50"
-                      keyTimes="0;1"
-                    />
+                      keyTimes="0;1" />
                   </circle>
                 </svg>
                 Caricamento voci...
@@ -84,7 +83,7 @@
         <h1 style="text-align: center">Carica CSV</h1>
 
         <div id="file-drop">
-          <p id="csv-info">Fai un drag and drop del CSV oppure</p>
+          <p id="csv-info"><!-- Fai un drag and drop del CSV oppure --></p>
           <a class="waves-effect waves-light btn" id="file-picker">Scegli file</a>
         </div>
 
@@ -100,11 +99,9 @@
                     viewBox="0 0 24 24"
                     fill="green"
                     style="margin-right: 0.5rem"
-                    class="voice-ok hide"
-                  >
+                    class="voice-ok hide">
                     <path
-                      d="M12 0c-6.627 0-12 5.373-12 12s5.373 12 12 12 12-5.373 12-12-5.373-12-12-12zm-1.959 17l-4.5-4.319 1.395-1.435 3.08 2.937 7.021-7.183 1.422 1.409-8.418 8.591z"
-                    />
+                      d="M12 0c-6.627 0-12 5.373-12 12s5.373 12 12 12 12-5.373 12-12-5.373-12-12-12zm-1.959 17l-4.5-4.319 1.395-1.435 3.08 2.937 7.021-7.183 1.422 1.409-8.418 8.591z" />
                   </svg>
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
@@ -113,11 +110,9 @@
                     viewBox="0 0 24 24"
                     fill="red"
                     style="margin-right: 0.5rem"
-                    class="voice-error hide"
-                  >
+                    class="voice-error hide">
                     <path
-                      d="M12 0c-6.627 0-12 5.373-12 12s5.373 12 12 12 12-5.373 12-12-5.373-12-12-12zm4.151 17.943l-4.143-4.102-4.117 4.159-1.833-1.833 4.104-4.157-4.162-4.119 1.833-1.833 4.155 4.102 4.106-4.16 1.849 1.849-4.1 4.141 4.157 4.104-1.849 1.849z"
-                    />
+                      d="M12 0c-6.627 0-12 5.373-12 12s5.373 12 12 12 12-5.373 12-12-5.373-12-12-12zm4.151 17.943l-4.143-4.102-4.117 4.159-1.833-1.833 4.104-4.157-4.162-4.119 1.833-1.833 4.155 4.102 4.106-4.16 1.849 1.849-4.1 4.141 4.157 4.104-1.849 1.849z" />
                   </svg>
                   <span class="voice-ok hide">Tutto OK!</span>
                   <span class="voice-error hide">Qualcosa non va :(</span>
@@ -127,7 +122,7 @@
                   <div id="install-voices-container" style="margin-top: 1rem" class="hide"></div>
                   <p id="install-voice-status"></p>
                   <a class="waves-effect waves-light btn hide" id="select-voice-path">
-                    Seleziona percorso di installazione
+                    Installazione terminata
                   </a>
 
                   <ul style="margin-top: 2rem" class="collapsible">
@@ -138,8 +133,6 @@
                       </div>
                     </li>
                   </ul>
-                  <!-- <p style="margin-top: 1rem">Voci installate:</p>
-                  <div id="voices-list"></div> -->
                 </div>
               </div>
             </div>
@@ -168,8 +161,7 @@
                   xmlns="http://www.w3.org/2000/svg"
                   width="18"
                   height="18"
-                  viewBox="0 0 24 24"
-                >
+                  viewBox="0 0 24 24">
                   <path d="M5 3l3.057-3 11.943 12-11.943 12-3.057-3 9-9z" />
                 </svg>
               </span>
@@ -196,9 +188,7 @@
               <option value="Loquendo Roberto" selected>Loquendo Roberto</option>
               <option value="Loquendo Paola">Loquendo Paola</option>
             </select>
-            <label>
-              Seleziona la voce (attenzione alle maiuscole e ricordati che deve essere installata)
-            </label>
+            <label>Seleziona la voce (se non è installata, i file audio saranno vuoti)</label>
           </div>
         </div>
 
@@ -364,8 +354,7 @@
               style="margin-left: 2rem"
               class="switch tooltipped"
               data-position="top"
-              data-tooltip="Il TTS multithread mostra ancora qualche bug, pertanto bisogna evitare di usarlo"
-            >
+              data-tooltip="Il TTS multithread mostra ancora qualche bug, pertanto bisogna evitare di usarlo">
               <label>
                 TTS multithread
                 <input disabled type="checkbox" id="multithreaded-tts" />
@@ -387,7 +376,7 @@
     <footer style="z-index: 100" class="page-footer">
       <div class="container" style="padding-top: 1rem; padding-bottom: 1rem">
         Per dubbi o problemi:
-        <a style="color: inherit" href="mailto:alessandro.amella@setaweb.it">
+        <a style="color: inherit; cursor: pointer" href="mailto:alessandro.amella@setaweb.it">
           alessandro.amella@setaweb.it
         </a>
         <span class="right">

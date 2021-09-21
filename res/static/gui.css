@@ -3,6 +3,21 @@
     text-overflow: ellipsis;
 }
 
+:not(li),
+:not(input):not(textarea),
+:not(input):not(textarea)::after,
+:not(input):not(textarea)::before {
+    -webkit-user-select: none;
+    user-select: none;
+    cursor: default;
+}
+input,
+button,
+textarea,
+:focus {
+    outline: none;
+}
+
 body {
     background-color: #fafafa;
     padding-bottom: 4rem;

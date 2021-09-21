@@ -344,7 +344,7 @@ ipcRenderer.on("conversion-status", (event, data: ConversionStatus) => {
 ipcRenderer.send("get-voices");
 ipcRenderer.on(
     "voices",
-    (event, { expectedVoices, voices, hasVoices, missingVoices, msg }: VoicesReturn) => {
+    (event, { expectedVoices, voices, hasVoices, missingVoices, voicesArr, msg }: VoicesReturn) => {
         console.log("Voices", { expectedVoices, voices, hasVoices, missingVoices, msg });
 
         // (document.getElementById("voice-name") as HTMLElement).textContent =
@@ -468,4 +468,12 @@ ipcRenderer.on(
 
 selectVoicePathElem.addEventListener("click", () => {
     ipcRenderer.send("voice-installed");
+});
+
+document.getElementById("open-console")?.addEventListener("click", () => {
+    ipcRenderer.send("open-console");
+});
+
+document.getElementById("open-logs")?.addEventListener("click", () => {
+    ipcRenderer.send("open-logs");
 });

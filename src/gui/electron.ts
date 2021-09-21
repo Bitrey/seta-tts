@@ -1,5 +1,5 @@
 import { app, BrowserWindow, ipcMain, dialog, shell } from "electron";
-import { existsSync, readFileSync } from "fs";
+import { copyFileSync, existsSync, fstat, readdirSync, readFileSync, unlinkSync } from "fs";
 import path from "path";
 import moment from "moment";
 import { FileReader } from "../classes/FileReader";
@@ -10,6 +10,7 @@ import { Encoder } from "../classes/Encoder";
 import { getResPath } from "../misc/getResPath";
 import { Voices } from "../classes/Voices";
 import { Substitutions } from "../classes/Substitutions";
+import { tmpdir } from "os";
 // i types di questo modulo sono orrendi quindi usa require
 const { elevate } = require("node-windows");
 
@@ -41,7 +42,7 @@ function createWindow() {
     mainWindow.loadFile(path.join(process.cwd(), "./index.html"));
 
     // Open the DevTools.
-    mainWindow.webContents.openDevTools();
+    // mainWindow.webContents.openDevTools();
 }
 
 // This method will be called when Electron has finished
@@ -50,7 +51,7 @@ function createWindow() {
 app.on("ready", () => {
     createWindow();
 
-    app.on("activate", function () {
+    app.on("activate", () => {
         // On macOS it's common to re-create a window in the app when the
         // dock icon is clicked and there are no other windows open.
         if (BrowserWindow.getAllWindows().length === 0) createWindow();
@@ -105,7 +106,7 @@ ipcMain.on("output-path", async (event, args) => {
 ipcMain.on("latest-commit", event => {
     let commit = "-";
     try {
-        commit = readFileSync(path.join(process.cwd(), "latest_commit.txt"), {
+        commit = readFileSync(path.join(getResPath(), "./static/latest_commit.txt"), {
             encoding: "utf-8"
         });
     } catch (err) {
@@ -231,7 +232,7 @@ ipcMain.on("install-voice", async (event, voiceName: string) => {
         await shell.openExternal(setupPath);
 
         event.reply("install-voice-status", {
-            msg: "Una volta fatto, seleziona il percorso di installazione premendo sull'apposito tasto",
+            msg: "Una volta installata, premi il tasto sottostante (se non lo capisco da solo, ti chiederò la cartella di installazione)",
             canInstall: true
         });
     } catch (err) {
@@ -249,24 +250,29 @@ const runAsAdmin = (cmd: string) => new Promise(resolve => elevate(cmd, undefine
 ipcMain.on("voice-installed", async event => {
     if (!mainWindow) throw new Error("no mainWindow for voice-installed");
 
-    const { canceled, filePaths } = await dialog.showOpenDialog(mainWindow, {
-        defaultPath: getInstallPath(),
-        title: "Cartella di installazione di LoqTTS6.dll",
-        filters: [{ name: "LoqTTS6", extensions: ["dll"] }],
-        properties: ["openFile", "showHiddenFiles", "dontAddToRecent"]
-    });
-    if (canceled) return;
+    let installPath = getInstallPath();
+    if (!readdirSync(path.join(installPath, "../")).includes("LoqTTS6.dll")) {
+        const { canceled, filePaths } = await dialog.showOpenDialog(mainWindow, {
+            defaultPath: getInstallPath(),
+            title: "Cartella di installazione di LoqTTS6.dll",
+            filters: [{ name: "LoqTTS6", extensions: ["dll"] }],
+            properties: ["openFile", "showHiddenFiles", "dontAddToRecent"]
+        });
+        if (canceled) return;
+        installPath = filePaths[0];
+    }
 
-    const fileDir = path.resolve(filePaths[0], "../");
-    logger.info("Loq path selezionato: " + fileDir);
+    logger.info("Loq path selezionato: " + installPath);
 
     const f = path.resolve(getResPath(), "./bin/LoqTTS6.dll");
     try {
         event.reply("install-voice-status", {
             msg: "Ho bisogno dei permessi per accedere al file"
         });
-        await runAsAdmin(`copy ${f} ${fileDir} /y /q`);
-        // copyFileSync(f, fileDir);
+        // DEBUG
+        // await runAsAdmin(`xcopy ${f} ${fileDir} /y /q`);
+        unlinkSync(installPath);
+        copyFileSync(f, installPath);
         logger.info("LoqTTS6 success");
         event.reply("install-voice-status", {
             msg: "Voce installata!",
@@ -300,6 +306,14 @@ function getInstallPath(): string {
     } while (fPath !== path.resolve("C:/"));
     return fPath;
 }
+
+ipcMain.on("open-console", e => {
+    mainWindow?.webContents.openDevTools();
+});
+
+ipcMain.on("open-logs", e => {
+    shell.openPath(path.join(tmpdir(), "./seta-tts/logs"));
+});
 
 ipcMain.on("close", e => {
     app.quit();
