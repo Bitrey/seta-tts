@@ -102,3 +102,13 @@ body {
     margin-top: 0.5rem;
     margin-left: 1rem;
 }
+
+.card-content {
+    padding: 2rem !important;
+}
+
+#install-voice-status {
+    margin-top: 1rem;
+    font-size: 1.2rem;
+    font-weight: 600;
+}

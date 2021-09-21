@@ -119,14 +119,17 @@
                       d="M12 0c-6.627 0-12 5.373-12 12s5.373 12 12 12 12-5.373 12-12-5.373-12-12-12zm4.151 17.943l-4.143-4.102-4.117 4.159-1.833-1.833 4.104-4.157-4.162-4.119 1.833-1.833 4.155 4.102 4.106-4.16 1.849 1.849-4.1 4.141 4.157 4.104-1.849 1.849z"
                     />
                   </svg>
-                  <span class="voice-ok hide">Voce installata correttamente</span>
-                  <span class="voice-error hide">Voce non trovata</span>
+                  <span class="voice-ok hide">Tutto OK!</span>
+                  <span class="voice-error hide">Qualcosa non va :(</span>
                 </span>
                 <div>
-                  <p class="voice-error hide">
-                    È necessario installare la voce
-                    <span id="voice-name">Loquendo Roberto</span>
-                  </p>
+                  <p class="voice-msg"></p>
+                  <div id="install-voices-container" style="margin-top: 1rem" class="hide"></div>
+                  <p id="install-voice-status"></p>
+                  <a class="waves-effect waves-light btn hide" id="select-voice-path">
+                    Seleziona percorso di installazione
+                  </a>
+
                   <ul style="margin-top: 2rem" class="collapsible">
                     <li class="active">
                       <div class="collapsible-header">Voci installate</div>

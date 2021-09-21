@@ -2,10 +2,10 @@ import os from "os";
 import path from "path";
 import { spawn } from "child_process";
 import { parentPort } from "worker_threads";
-import { formatVariables } from "../misc/formatVariables";
 import { logger } from "../misc/logger";
 import { TTSFileArg } from "../classes/TTSFileArg";
 import { getResPath } from "../misc/getResPath";
+import { Substitutions } from "../classes/Substitutions";
 
 function speak(
     voice: string,
@@ -51,10 +51,16 @@ parentPort?.on(
             throw new Error("output must be a string");
         }
 
-        const outputName = formatVariables(fileName, row);
+        const outputName = Substitutions.formatString(fileName, row);
         const correctPath = outputPath || path.join(os.tmpdir(), "./seta-tts/output.tmp");
 
-        await speak(voice, finalFormat, formatVariables(ttsString, row), outputName, correctPath);
+        await speak(
+            voice,
+            finalFormat,
+            Substitutions.formatString(ttsString, row),
+            outputName,
+            correctPath
+        );
         logger.debug(`TTS di "${outputName}" completato"`);
 
         parentPort?.postMessage(fileName);

@@ -5,9 +5,7 @@
     "main": "build/index.js",
     "scripts": {
         "prebuild": "rimraf ./build && tsc && git rev-parse --short HEAD > latest_commit.txt",
-        "pack": "npm run prebuild && electron-builder --dir",
-        "predist": "npm run prebuild && rimraf ./dist",
-        "dist": "npm run predist && electron-builder",
+        "dist": "npm run prebuild && rimraf ./dist && bash .git/hooks/pre-commit --dist && electron-builder",
         "start": "npm run prebuild && electron build/index.js"
     },
     "author": {
@@ -32,6 +30,7 @@
         "json-2-csv": "^3.14.4",
         "materialize-css": "^1.0.0-rc.2",
         "moment": "^2.29.1",
+        "node-windows": "^1.0.0-beta.6",
         "node-worker-threads-pool": "^1.5.0",
         "trash": "^7.2.0",
         "winston": "^3.3.3"

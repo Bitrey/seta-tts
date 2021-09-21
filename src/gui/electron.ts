@@ -1,14 +1,17 @@
 import { app, BrowserWindow, ipcMain, dialog, shell } from "electron";
-import * as path from "path";
+import { existsSync, readFileSync } from "fs";
+import path from "path";
+import moment from "moment";
 import { FileReader } from "../classes/FileReader";
 import { logger } from "../misc/logger";
-import { readFileSync } from "fs";
 import { TTS } from "../classes/TTS";
 import { AnyObj } from "../classes/AnyObj";
 import { Encoder } from "../classes/Encoder";
-import moment from "moment";
-import { listVoices } from "../misc/listVoices";
 import { getResPath } from "../misc/getResPath";
+import { Voices } from "../classes/Voices";
+import { Substitutions } from "../classes/Substitutions";
+// i types di questo modulo sono orrendi quindi usa require
+const { elevate } = require("node-windows");
 
 moment.locale("it");
 
@@ -205,8 +208,98 @@ ipcMain.on("start-conversion", async (event, arg) => {
 });
 
 ipcMain.on("get-voices", async event => {
-    event.reply("voices", await listVoices(selectedVoice));
+    const v = new Voices();
+    event.reply("voices", await v.listVoices());
 });
+
+ipcMain.on("install-voice", async (event, voiceName: string) => {
+    try {
+        event.reply("install-voice-status", { msg: "Controllo se la voce è già installata..." });
+
+        const v = new Voices();
+        if (await v.isVoiceInstalled(voiceName)) {
+            return event.reply("install-voice-status", {
+                msg: `La voce "${voiceName}" è già installata`,
+                finished: true
+            });
+        }
+
+        const setupPath = path.join(getResPath(), `./bin/${voiceName.split("Loquendo ")[1]}.exe`);
+        logger.info(`apro setup di "${voiceName}" in ${setupPath}`);
+
+        event.reply("install-voice-status", { msg: `Apro l'eseguibile...` });
+        await shell.openExternal(setupPath);
+
+        event.reply("install-voice-status", {
+            msg: "Una volta fatto, seleziona il percorso di installazione premendo sull'apposito tasto",
+            canInstall: true
+        });
+    } catch (err) {
+        logger.error(err);
+        event.reply("install-voice-status", {
+            msg: "Si è verificato un errore: " + err,
+            finished: true
+        });
+    }
+});
+
+// const isAdmin = () => new Promise(resolve => isAdminUser(resolve));
+const runAsAdmin = (cmd: string) => new Promise(resolve => elevate(cmd, undefined, resolve));
+
+ipcMain.on("voice-installed", async event => {
+    if (!mainWindow) throw new Error("no mainWindow for voice-installed");
+
+    const { canceled, filePaths } = await dialog.showOpenDialog(mainWindow, {
+        defaultPath: getInstallPath(),
+        title: "Cartella di installazione di LoqTTS6.dll",
+        filters: [{ name: "LoqTTS6", extensions: ["dll"] }],
+        properties: ["openFile", "showHiddenFiles", "dontAddToRecent"]
+    });
+    if (canceled) return;
+
+    const fileDir = path.resolve(filePaths[0], "../");
+    logger.info("Loq path selezionato: " + fileDir);
+
+    const f = path.resolve(getResPath(), "./bin/LoqTTS6.dll");
+    try {
+        event.reply("install-voice-status", {
+            msg: "Ho bisogno dei permessi per accedere al file"
+        });
+        await runAsAdmin(`copy ${f} ${fileDir} /y /q`);
+        // copyFileSync(f, fileDir);
+        logger.info("LoqTTS6 success");
+        event.reply("install-voice-status", {
+            msg: "Voce installata!",
+            finished: true,
+            success: true
+        });
+    } catch (err) {
+        logger.error(err);
+        event.reply("install-voice-status", {
+            msg:
+                err &&
+                typeof (err as any).toString === "function" &&
+                ((err as any).toString() as string).includes("EPERM")
+                    ? "Non ho i permessi per accedere al file :("
+                    : `Errore durante l'accesso al file LoqTTS6: ${err}`,
+            finished: true
+        });
+    }
+});
+
+ipcMain.handle("format-string", (event, str: string, obj: AnyObj) => {
+    return Substitutions.formatString(str, obj);
+});
+
+function getInstallPath(): string {
+    let fPath = path.resolve("C:\\Program Files (x86)\\Loquendo\\LTTS\\LoqTTS6.dll");
+    do {
+        logger.info("Loq install path: " + fPath);
+        if (existsSync(fPath)) return fPath;
+        else fPath = path.resolve(fPath, "../");
+    } while (fPath !== path.resolve("C:/"));
+    return fPath;
+}
 
 ipcMain.on("close", e => {
     app.quit();

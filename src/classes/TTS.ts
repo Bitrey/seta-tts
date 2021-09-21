@@ -3,11 +3,11 @@ import path from "path";
 import { spawn } from "child_process";
 import { EventEmitter } from "stream";
 import { StaticPool } from "node-worker-threads-pool";
-import { formatVariables } from "../misc/formatVariables";
 import { logger } from "../misc/logger";
 import { AnyObj } from "./AnyObj";
 import { TTSFileArg } from "./TTSFileArg";
 import { getResPath } from "../misc/getResPath";
+import { Substitutions } from "./Substitutions";
 
 export class TTS {
     public readonly onTTSStart: EventEmitter;
@@ -70,8 +70,8 @@ export class TTS {
                 "tts-start",
                 `TTS in corso... (Riga ${i + 1}/${jsonContent.length})`
             );
-            const formattedStr = formatVariables(ttsString, jsonContent[i]);
-            const formattedTitle = formatVariables(fileName, jsonContent[i]);
+            const formattedStr = Substitutions.formatString(ttsString, jsonContent[i]);
+            const formattedTitle = Substitutions.formatString(fileName, jsonContent[i]);
             await this.speak(voice, finalFormat, formattedStr, formattedTitle);
         }
     }
