@@ -127,3 +127,7 @@ body {
     font-size: 1.2rem;
     font-weight: 600;
 }
+
+input[type="text"] {
+    cursor: auto;
+}

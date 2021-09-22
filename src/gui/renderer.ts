@@ -3,14 +3,15 @@ import path from "path";
 import fs from "fs";
 import { VoicesReturn } from "../classes/Voices";
 
+import mType from "materialize-css";
+
 const mDebugPath = path.join(__dirname, "../../res/static/materialize.min.js");
 const isDebug = fs.existsSync(mDebugPath);
-
-(
-    require(isDebug
-        ? mDebugPath
-        : path.join(process.resourcesPath, "./res/static/materialize.min.js")) as any
-).AutoInit();
+const mPath = isDebug
+    ? mDebugPath
+    : path.join(process.resourcesPath, "./res/static/materialize.min.js");
+const M = require(mPath) as typeof mType;
+M.AutoInit();
 
 function addCSS() {
     const materializeLink = document.createElement("link");
@@ -118,6 +119,14 @@ document.addEventListener("dragleave", event => {
     csvInfo("Caccia dentro il CSV");
 });
 
+const ttsStringElem = document.getElementById("tts-string-input") as HTMLInputElement;
+if (!ttsStringElem) throw new Error("no tts-string-input elem");
+const fileNameElem = document.getElementById("file-name-input") as HTMLInputElement;
+if (!fileNameElem) throw new Error("no file-name-input elem");
+
+const previewCollapsibleElem = document.getElementById("preview-collapsible") as HTMLUListElement;
+if (!previewCollapsibleElem) throw new Error("no preview-collapsible elem");
+
 function renderTable() {
     const { fileName, columnNames, jsonContent } = state;
 
@@ -154,6 +163,13 @@ function renderTable() {
     }
 
     document.querySelectorAll(".first-col").forEach(e => (e.textContent = columnNames[0]));
+    document
+        .querySelectorAll(".second-col")
+        .forEach(e => (e.textContent = columnNames[1] || "non c'è una seconda colonna :("));
+    fileNameElem.value = `{ ${columnNames[0]} }`;
+    ttsStringElem.value = `{ ${columnNames[1]} }`;
+    fileNamePreview();
+    ttsStringPreview();
 
     // non mostrare tabella eccessivamente lunga
     if (!jsonContent) throw new Error("jsonContent not loaded yet");
@@ -185,8 +201,15 @@ function renderTable() {
     document.querySelector(".csv-upload-container")?.classList.add("hide");
     document.querySelector(".csv-file-container")?.classList.remove("hide");
 
-    // accordion.open(0);
+    M.Collapsible.getInstance(previewCollapsibleElem).open(0);
 }
+
+M.Collapsible.getInstance(previewCollapsibleElem).options.onOpenStart = () => {
+    document.getElementById("preview-collapsible-arrow")?.classList.add("expanded");
+};
+M.Collapsible.getInstance(previewCollapsibleElem).options.onCloseStart = () => {
+    document.getElementById("preview-collapsible-arrow")?.classList.remove("expanded");
+};
 
 document.getElementById("output-path-input")?.addEventListener("click", outputPath);
 
@@ -199,11 +222,12 @@ function newFile() {
 
     document.getElementById("hidden-rows-num")?.classList.add("hide");
 
-    csvInfo("Fai un drag and drop del CSV oppure");
+    // csvInfo("Fai un drag and drop del CSV oppure");
+    csvInfo("");
     (document.querySelector(".csv-file-container") as HTMLElement).classList.add("hide");
     (document.querySelector(".csv-upload-container") as HTMLElement).classList.remove("hide");
 
-    // accordion.close(0);
+    M.Collapsible.getInstance(previewCollapsibleElem).close(0);
 
     audioLog(null, true);
 
@@ -226,26 +250,29 @@ async function formatVariables(str: string): Promise<string> {
     return await ipcRenderer.invoke("format-string", str, jsonContent && jsonContent[0]);
 }
 
-const ttsStringPreview = document.getElementById("tts-string-preview") as HTMLElement;
-document.getElementById("tts-string-input")?.addEventListener("input", async event => {
-    const { value } = event.target as any;
-    (document.getElementById("tts-string-preview-container") as HTMLElement).style.visibility =
-        !!value ? "visible" : "hidden";
-    ttsStringPreview.textContent = await formatVariables(value);
-});
+const ttsStringPreviewElem = document.getElementById("tts-string-preview") as HTMLElement;
+ttsStringElem.addEventListener("input", ttsStringPreview);
 
-const fileNamePreview = document.getElementById("file-name-preview") as HTMLElement;
-document.getElementById("file-name-input")?.addEventListener("input", async event => {
-    const { value } = event.target as any;
-    (document.getElementById("file-name-preview-container") as HTMLElement).style.visibility =
-        !!value ? "visible" : "hidden";
+async function ttsStringPreview() {
+    const c = document.getElementById("tts-string-preview-container") as HTMLElement;
+    c.style.visibility = !!ttsStringElem.value ? "visible" : "hidden";
+    ttsStringPreviewElem.textContent = await formatVariables(ttsStringElem.value);
+}
+
+const fileNamePreviewElem = document.getElementById("file-name-preview") as HTMLElement;
+document.getElementById("file-name-input")?.addEventListener("input", fileNamePreview);
+
+async function fileNamePreview() {
+    const { value } = fileNameElem;
+    const c = document.getElementById("file-name-preview-container") as HTMLElement;
+    c.style.visibility = !!value ? "visible" : "hidden";
     const format = (document.getElementById("audio-format-input") as HTMLInputElement).value;
-    fileNamePreview.textContent = `${await formatVariables(value)}.${format}`;
-});
+    fileNamePreviewElem.textContent = `${await formatVariables(value)}.${format}`;
+}
 
-document.getElementById("audio-format-input")?.addEventListener("change", event => {
-    fileNamePreview.textContent =
-        fileNamePreview.textContent?.replace(/\.[^/.]+$/, "." + (event.target as any).value) || "";
+document.getElementById("audio-format-input")?.addEventListener("change", e => {
+    fileNamePreviewElem.textContent =
+        fileNamePreviewElem.textContent?.replace(/\.[^/.]+$/, "." + (e.target as any).value) || "";
 });
 
 function outputPath(event: Event) {
@@ -295,7 +322,7 @@ function audioLog(err: string | null, hide = false, disable = false) {
 document.getElementById("convert")?.addEventListener("click", event => {
     audioLog(null, true, true);
 
-    const ttsString = (document.getElementById("tts-string-input") as HTMLInputElement).value;
+    const ttsString = ttsStringElem.value;
     const fileName = (document.getElementById("file-name-input") as HTMLInputElement).value;
 
     if (!state.jsonContent) {
@@ -340,6 +367,16 @@ ipcRenderer.on("conversion-status", (event, data: ConversionStatus) => {
         audioLog(null, false, false);
     }
 });
+
+const voicesCollapsibleElem = document.getElementById("voices-collapsible") as HTMLUListElement;
+if (!voicesCollapsibleElem) throw new Error("no voices-collapsible elem");
+
+M.Collapsible.getInstance(voicesCollapsibleElem).options.onOpenStart = () => {
+    document.getElementById("voices-collapsible-arrow")?.classList.add("expanded");
+};
+M.Collapsible.getInstance(voicesCollapsibleElem).options.onCloseStart = () => {
+    document.getElementById("voices-collapsible-arrow")?.classList.remove("expanded");
+};
 
 ipcRenderer.send("get-voices");
 ipcRenderer.on(
@@ -406,6 +443,8 @@ ipcRenderer.on(
             .forEach(e => e.classList.remove("hide"));
         document.getElementById("voices-loading")?.classList.add("hide");
         document.querySelector(".csv-upload-container")?.classList.remove("hide");
+
+        M.Collapsible.getInstance(voicesCollapsibleElem).open(0);
 
         state.canUploadFile = true;
     }
