@@ -1,12 +1,14 @@
 {
     "name": "seta-tts",
-    "version": "1.10.5",
+    "version": "1.10.7",
     "description": "App per fare TTS da file CSV, utile per generare i file audio delle fermate",
     "main": "build/index.js",
     "scripts": {
         "prebuild": "rimraf ./build && tsc && git rev-parse --short HEAD > res/static/latest_commit.txt",
         "dist": "npm run prebuild && npm version minor --no-git-tag-version && rimraf ./dist && electron-builder",
-        "start": "npm run prebuild && npm version patch --no-git-tag-version && electron build/index.js"
+        "dist-noversion": "npm run prebuild && rimraf ./dist && electron-builder",
+        "start": "npm run prebuild && npm version patch --no-git-tag-version && electron build/index.js",
+        "start-noversion": "npm run prebuild && electron build/index.js"
     },
     "author": {
         "name": "Bitrey",

@@ -78,8 +78,9 @@ export class Substitutions {
     }
 
     public static formatString(str: string, row: AnyObj): string {
-        let newStr = Substitutions.fixPronunciation(str);
+        let newStr = str;
         if (row) newStr = Substitutions.formatVariables(newStr, row);
+        newStr = Substitutions.fixPronunciation(newStr);
         logger.debug("formatString " + str + " -> " + newStr);
         return newStr;
     }
