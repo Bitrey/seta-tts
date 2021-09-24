@@ -68,7 +68,7 @@ export class Encoder {
 
     public encodeFile(input: string, output: string): Promise<void> {
         return new Promise(async (resolve, reject) => {
-            const { bitrate, channels, sampleRate, volume } = this.encodeOptions;
+            const { bitrate, channels, sampleRate, volume, sampleFormat } = this.encodeOptions;
             const outputName = output.replace(/\.[^/.]+$/, "") + path.extname(output);
             const fName = path.basename(outputName);
 
@@ -94,9 +94,12 @@ export class Encoder {
                 "-ac", // imposta il numero di canali (default 1, mono)
                 channels.toString(),
                 "-b:a", // seleziona bitrate
-                bitrate.toString(),
-                outputName
+                bitrate.toString()
             ];
+            if (path.extname(output).endsWith("wav")) {
+                args.push(...["-c:a", sampleFormat]);
+            }
+            args.push(outputName);
 
             logger.info(`Converto "${path.basename(input)}" in "${fName}"...`);
 
@@ -131,6 +134,33 @@ export class Encoder {
         const { inputPath, outputPath } = this.prepareFolders();
         const files = this.getFileNames(inputDir || undefined);
         this.startConversionLog(inputDir || inputPath, files);
+
+        await Promise.all(
+            files
+                .map(file => {
+                    const fileInput = path.join(inputDir || inputPath, file);
+                    const fileName = path.basename(fileInput);
+                    const fileOutput = path.join(outputDir || outputPath, fileName);
+
+                    // Qua che hai accesso alla shell, cestina file già esistenti
+                    const outputName =
+                        fileOutput.replace(/\.[^/.]+$/, "") + path.extname(fileOutput);
+                    const fName = path.basename(outputName);
+
+                    return { outputName, fName };
+                })
+                .filter(e => fs.existsSync((e as any).outputName))
+                .map((e: any) => {
+                    if (fs.existsSync(e.outputName)) {
+                        logger.info(`"${e.fName}" esiste gia' e verra' cestinato`);
+                        this.onConversionStart.emit(
+                            "file-start",
+                            `Sto cestinando il file "${e.fName}"`
+                        );
+                        return shell.trashItem(e.outputName);
+                    }
+                })
+        );
 
         let processedFiles = 0;
         for (const file of files) {
@@ -172,22 +202,38 @@ export class Encoder {
             task: workerPath
         });
         await Promise.all(
+            files
+                .map(file => {
+                    const fileInput = path.join(inputDir || inputPath, file);
+                    const fileName = path.basename(fileInput);
+                    const fileOutput = path.join(outputDir || outputPath, fileName);
+
+                    // Qua che hai accesso alla shell, cestina file già esistenti
+                    const outputName =
+                        fileOutput.replace(/\.[^/.]+$/, "") + path.extname(fileOutput);
+                    const fName = path.basename(outputName);
+
+                    return { outputName, fName };
+                })
+                .filter(e => fs.existsSync((e as any).outputName))
+                .map((e: any) => {
+                    if (fs.existsSync(e.outputName)) {
+                        logger.info(`"${e.fName}" esiste gia' e verra' cestinato`);
+                        this.onConversionStart.emit(
+                            "file-start",
+                            `Sto cestinando il file "${e.fName}"`
+                        );
+                        return shell.trashItem(e.outputName);
+                    }
+                })
+        );
+        await Promise.all(
             files.map(async file => {
                 const fileInput = path.join(inputDir || inputPath, file);
                 const fileName = path.basename(fileInput);
                 const fileOutput = path.join(outputDir || outputPath, fileName);
 
-                // Qua che hai accesso alla shell, cestina file già esistenti
-                const outputName = fileOutput.replace(/\.[^/.]+$/, "") + path.extname(fileOutput);
-                const fName = path.basename(outputName);
-
-                if (fs.existsSync(outputName)) {
-                    logger.info(`"${fName}" esiste gia' e verra' cestinato`);
-                    this.onConversionStart.emit("file-start", `Sto cestinando il file "${fName}"`);
-                    await shell.trashItem(outputName);
-                }
-
-                // logger.debug(`Pool converte il file "${fileInput}" verso output "${fileOutput}"`);
+                logger.debug(`Pool converte il file "${fileInput}" verso output "${fileOutput}"`);
                 const args: EncodeFileArg = {
                     pathToFfmpeg: Encoder.pathToFfmpeg,
                     encodeOptions: this.encodeOptions,

@@ -6,5 +6,6 @@ export interface TTSFileArg {
     fileName: string;
     row: AnyObj;
     finalFormat: string;
+    sampleFormat?: string;
     outputPath?: string;
 }

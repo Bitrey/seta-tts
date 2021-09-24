@@ -1,6 +1,6 @@
 {
     "name": "seta-tts",
-    "version": "1.10.7",
+    "version": "1.11.0",
     "description": "App per fare TTS da file CSV, utile per generare i file audio delle fermate",
     "main": "build/index.js",
     "scripts": {

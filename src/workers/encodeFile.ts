@@ -23,7 +23,7 @@ function encodeFile({
     fileOutput
 }: EncodeFileArg): Promise<void> {
     return new Promise(async (resolve, reject) => {
-        const { bitrate, channels, sampleRate, volume } = encodeOptions;
+        const { bitrate, channels, sampleRate, volume, sampleFormat } = encodeOptions;
         const outputName = fileOutput.replace(/\.[^/.]+$/, "") + path.extname(fileOutput);
         const fName = path.basename(outputName);
 
@@ -43,9 +43,12 @@ function encodeFile({
             "-ac", // imposta il numero di canali (default 1, mono)
             channels.toString(),
             "-b:a", // seleziona bitrate
-            bitrate.toString(),
-            outputName
+            bitrate.toString()
         ];
+        if (path.extname(fileOutput).endsWith("wav")) {
+            args.push(...["-c:a", sampleFormat]);
+        }
+        args.push(outputName);
         // console.log(args);
         logger?.info(`Converto "${path.basename(fileInput)}" in "${fName}"...`);
 

@@ -169,6 +169,15 @@
             o
             <strong>&lt;ID fermata&gt;.wav.</strong>
           </p>
+          <p>
+            Se i file audio risultano vuoti, è consigliato provare a disinstallare le voci (dal
+            pannello di controllo) e reinstallarle tramite questo programma.
+          </p>
+          <p>
+            Se non vengono proprio generati, si può provare a capire il problema disattivando TTS e
+            codifica multithread (che sopprimono i log) e guardare la cartella dei log, il tasto per
+            aprirla è in alto a destra.
+          </p>
         </div>
 
         <h1 style="text-align: center; margin-bottom: 0">
@@ -308,7 +317,7 @@
           </div>
         </div>
 
-        <div class="row">
+        <div style="margin-bottom: 0" class="row">
           <div class="col s12">
             <h5 style="margin-bottom: 1rem; font-weight: 500">TTS</h5>
             <p>
@@ -374,7 +383,7 @@
               </div>
             </div>
             <div class="row">
-              <div class="input-field col s8">
+              <div class="input-field col s12">
                 <input id="file-name-input" type="text" value="Nome del file" />
                 <label for="file-name-input">Nome del file</label>
                 <small id="file-name-preview-container">
@@ -382,133 +391,233 @@
                   <span id="file-name-preview" style="font-weight: 600">-</span>
                 </small>
               </div>
-              <div class="input-field col s4">
-                <select id="audio-format-input">
-                  <option value="mp3" selected>MP3</option>
-                  <option value="wav">WAV</option>
-                </select>
-                <label for="audio-format-input">Formato audio</label>
-              </div>
             </div>
           </div>
         </div>
 
-        <div style="margin-top: 4rem; margin-bottom: 1rem" class="row">
+        <div style="margin-bottom: 1rem" class="row">
           <div class="col s12">
-            <h5 style="margin-bottom: 1rem; font-weight: 500">Codifica audio</h5>
-            <p>
-              Le impostazioni di codifica audio corrette per Modena sono bitrate a
-              <strong>88kbps</strong>
-              e sample rate di
-              <strong>11025Hz.</strong>
-            </p>
-            <p>
-              Per Reggio e Piacenza il bitrate corretto è di
-              <strong>256kbps.</strong>
-            </p>
-          </div>
-        </div>
+            <h5 style="margin-bottom: 1.5rem; font-weight: 500">Codifica audio</h5>
 
-        <div class="row">
-          <div style="visibility: hidden" class="col s12">
-            <p id="audio-errors">-</p>
-          </div>
-          <div class="input-field col s6">
-            <select id="bitrate">
-              <option value="24k">24kbps</option>
-              <option value="32k">32kbps</option>
-              <option value="88k" selected>88kbps</option>
-              <option value="96k">96kbps</option>
-              <option value="128k">128kbps</option>
-              <option value="192k">192kbps</option>
-              <option value="256k">256kbps</option>
-            </select>
-            <label for="bitrate">Bitrate</label>
-          </div>
+            <ul
+              id="audio-options-collapsible"
+              style="margin-top: 2rem; margin-bottom: 0"
+              class="collapsible">
+              <li id="audio-easy">
+                <div class="collapsible-header">
+                  Facilitato
+                  <span style="margin-left: auto">
+                    <svg
+                      id="audio-easy-collapsible-arrow"
+                      class="accordion-arrow"
+                      xmlns="http://www.w3.org/2000/svg"
+                      width="18"
+                      height="18"
+                      viewBox="0 0 24 24">
+                      <path d="M5 3l3.057-3 11.943 12-11.943 12-3.057-3 9-9z" />
+                    </svg>
+                  </span>
+                </div>
+                <div class="collapsible-body">
+                  <p>Scegli il bacino a cui sono destinati i file audio</p>
 
-          <div class="input-field col s6">
-            <!-- prettier-ignore -->
-            <select id="sample-rate">
-              <option value="1000">​1 kHz​</option>​
-              <option value="2000">​2 kHz​</option>​
-              <option value="3000">​3 kHz​</option>​
-              <option value="4000">​4 kHz​</option>​
-              <option value="6000">​6 kHz​</option>​
-              <option value="8000">​8 kHz​</option>​
-              <option value="11025" selected>​11.025 kHz​</option>​
-              <option value="12000">​12 kHz​</option>​
-              <option value="16000">​16 kHz​</option>​
-              <option value="22050">​22.05 kHz​</option>​
-              <option value="24000">​24 kHz​</option>​
-              <option value="32000">​32 kHz​</option>​
-              <option value="44100">​44.1 kHz (CD)​</option>​
-              <option value="48000">​48 kHz (DVD)​</option>​
-              <option value="64000">​64 kHz​</option>​
-              <option value="88200">​88.2 kHz​</option>​
-              <option value="96000">​96 kHz​</option>​
-              <option value="128000">​128 kHz​</option>​
-              <option value="176400">​176.4 kHz​</option>​
-              <option value="192000">​192 kHz​</option>​
-              <option value="256000">​256 kHz​</option>​
-              <option value="352800">​352.8 kHz​</option>​
-              <option value="384000">​384 kHz​</option>​
-              <option value="512000">​512 kHz​</option>​
-              <option value="705600">​705.6 kHz​</option>​
-              <option value="768000">​768 kHz​</option>​
-              <option value="1024000">​1024 kHz​</option>​
-            </select>
-            <label for="sample-rate">Sample rate</label>
-          </div>
-        </div>
+                  <div style="margin-top: 2rem">
+                    <p>
+                      <label>
+                        <input name="bacino" type="radio" value="mo" checked />
+                        <span>Modena</span>
+                      </label>
+                    </p>
+                    <p>
+                      <label>
+                        <input name="bacino" type="radio" value="re" />
+                        <span>Reggio e Piacenza</span>
+                      </label>
+                    </p>
+                  </div>
+                </div>
+              </li>
+              <li id="audio-advanced">
+                <div class="collapsible-header">
+                  Avanzato
+                  <span style="margin-left: auto">
+                    <svg
+                      id="audio-advanced-collapsible-arrow"
+                      class="accordion-arrow"
+                      xmlns="http://www.w3.org/2000/svg"
+                      width="18"
+                      height="18"
+                      viewBox="0 0 24 24">
+                      <path d="M5 3l3.057-3 11.943 12-11.943 12-3.057-3 9-9z" />
+                    </svg>
+                  </span>
+                </div>
+                <div class="collapsible-body">
+                  <p>
+                    Le impostazioni di codifica audio corrette per Modena sono: audio in formato
+                    <strong>WAV</strong>
+                    con codec
+                    <strong>pcm_u8</strong>
+                    (PCM unsigned 8-bit) e un sample rate da
+                    <strong>11025Hz</strong>
+                    a
+                    <strong>44100Hz.</strong>
+                  </p>
+                  <p>
+                    Per Reggio e Piacenza bisogna usare la codifica
+                    <strong>MP3</strong>
+                    con sample rate di
+                    <strong>11025Hz,</strong>
+                    bitrate di
+                    <strong>24kbps</strong>
+                    e volume al
+                    <strong>150%.</strong>
+                  </p>
 
-        <div class="row">
-          <div class="input-field col s6">
-            <p class="range-field">
-              <label for="volume">Volume</label>
-              <span style="display: flex; align-items: center">
-                <input type="range" id="volume" min="0" max="200" value="100" />
-                <span id="volume-txt" style="padding-left: 1rem; color: #9e9e9e">100%</span>
-              </span>
-            </p>
-          </div>
+                  <div class="row">
+                    <div class="input-field col s4">
+                      <select id="bitrate">
+                        <option value="24k" selected>24kbps</option>
+                        <option value="32k">32kbps</option>
+                        <option value="96k">96kbps</option>
+                        <option value="128k">128kbps</option>
+                        <option value="192k">192kbps</option>
+                        <option value="256k">256kbps</option>
+                      </select>
+                      <label for="bitrate">Bitrate</label>
+                    </div>
 
-          <div class="input-field col s6">
-            <div class="file-field input-field">
-              <div class="btn">
-                <span>Cartella di output</span>
-                <input type="file" webkitdirectory id="output-path-input" />
+                    <div class="input-field col s4">
+                      <!-- prettier-ignore -->
+                      <select id="sample-rate">
+                        <option value="1000">​1 kHz​</option>                      ​
+                        <option value="2000">​2 kHz​</option>                      ​
+                        <option value="3000">​3 kHz​</option>                      ​
+                        <option value="4000">​4 kHz​</option>                      ​
+                        <option value="6000">​6 kHz​</option>                      ​
+                        <option value="8000">​8 kHz​</option>                      ​
+                        <option value="11025" selected>​11.025 kHz​</option>                      ​
+                        <option value="12000">​12 kHz​</option>                      ​
+                        <option value="16000">​16 kHz​</option>                      ​
+                        <option value="22050">​22.05 kHz​</option>                      ​
+                        <option value="24000">​24 kHz​</option>                      ​
+                        <option value="32000">​32 kHz​</option>                      ​
+                        <option value="44100">​44.1 kHz (CD)​</option>                      ​
+                        <option value="48000">​48 kHz (DVD)​</option>                      ​
+                        <option value="64000">​64 kHz​</option>                      ​
+                        <option value="88200">​88.2 kHz​</option>                      ​
+                        <option value="96000">​96 kHz​</option>                      ​
+                        <option value="128000">​128 kHz​</option>                      ​
+                        <option value="176400">​176.4 kHz​</option>                      ​
+                        <option value="192000">​192 kHz​</option>                      ​
+                        <option value="256000">​256 kHz​</option>                      ​
+                        <option value="352800">​352.8 kHz​</option>                      ​
+                        <option value="384000">​384 kHz​</option>                      ​
+                        <option value="512000">​512 kHz​</option>                      ​
+                        <option value="705600">​705.6 kHz​</option>                      ​
+                        <option value="768000">​768 kHz​</option>                      ​
+                        <option value="1024000">​1024 kHz​</option>                      ​
+                      </select>
+                      <label for="sample-rate">Sample rate</label>
+                    </div>
+
+                    <div class="input-field col s4">
+                      <select id="audio-format-input">
+                        <option value="mp3" selected>MP3</option>
+                        <option value="wav">WAV</option>
+                      </select>
+                      <label for="audio-format-input">Formato audio</label>
+                    </div>
+                  </div>
+
+                  <div style="display: flex; align-items: center" class="row">
+                    <div
+                      class="input-field col s6 tooltipped"
+                      data-position="top"
+                      data-tooltip="L'MP3 utilizza il proprio codec, questo ha effetto solo con il formato WAV">
+                      <select id="sample-format-input">
+                        <option value="pcm_alaw">pcm_alaw</option>
+                        <option value="pcm_f32be">pcm_f32be</option>
+                        <option value="pcm_f32le">pcm_f32le</option>
+                        <option value="pcm_f64be">pcm_f64be</option>
+                        <option value="pcm_f64le">pcm_f64le</option>
+                        <option value="pcm_mulaw">pcm_mulaw</option>
+                        <option value="pcm_s16be">pcm_s16be</option>
+                        <option value="pcm_s16le">pcm_s16le</option>
+                        <option value="pcm_s24be">pcm_s24be</option>
+                        <option value="pcm_s24le">pcm_s24le</option>
+                        <option value="pcm_s32be">pcm_s32be</option>
+                        <option value="pcm_s32le">pcm_s32le</option>
+                        <option value="pcm_s8">pcm_s8</option>
+                        <option value="pcm_u16be">pcm_u16be</option>
+                        <option value="pcm_u16le">pcm_u16le</option>
+                        <option value="pcm_u24be">pcm_u24be</option>
+                        <option value="pcm_u24le">pcm_u24le</option>
+                        <option value="pcm_u32be">pcm_u32be</option>
+                        <option value="pcm_u32le">pcm_u32le</option>
+                        <option value="pcm_u8" selected>pcm_u8</option>
+                      </select>
+                      <label for="sample-format-input">Codec</label>
+                    </div>
+
+                    <div class="input-field col s6">
+                      <p class="range-field">
+                        <label for="volume">Volume</label>
+                        <span style="display: flex; align-items: center">
+                          <input type="range" id="volume" min="0" max="200" value="100" />
+                          <span id="volume-txt" style="padding-left: 1rem; color: #9e9e9e">
+                            100%
+                          </span>
+                        </span>
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </li>
+            </ul>
+
+            <div style="margin-top: 3rem" class="row">
+              <div style="visibility: hidden" class="col s12">
+                <p id="audio-errors">-</p>
               </div>
-              <div class="file-path-wrapper">
-                <input class="file-path validate" id="output-path-txt" type="text" />
-              </div>
-            </div>
-          </div>
-        </div>
 
-        <div style="margin-top: 3rem" class="row">
-          <div style="display: flex; align-items: center" class="col s12">
-            <a id="convert" class="waves-effect waves-light btn-large">Avvia conversione</a>
-            <div
-              style="margin-left: 2rem"
-              class="switch tooltipped"
-              data-position="top"
-              data-tooltip="Il TTS multithread mostra ancora qualche bug, pertanto bisogna evitare di usarlo">
-              <label for="multithreaded-tts">
-                TTS multithread
-                <input disabled type="checkbox" id="multithreaded-tts" />
-                <span class="lever"></span>
-              </label>
-            </div>
-            <div
-              style="margin-left: 2rem"
-              class="switch tooltipped"
-              data-position="top"
-              data-tooltip="Utilizza più thread del processore in modo da velocizzare i tempi di codifica">
-              <label for="multithreaded-encoding">
-                Codifica multithread
-                <input type="checkbox" id="multithreaded-encoding" checked />
-                <span class="lever"></span>
-              </label>
+              <div class="input-field col s12">
+                <div class="file-field input-field">
+                  <div class="btn">
+                    <span>Cartella di output</span>
+                    <input type="file" webkitdirectory id="output-path-input" />
+                  </div>
+                  <div class="file-path-wrapper">
+                    <input class="file-path validate" id="output-path-txt" type="text" />
+                  </div>
+                </div>
+              </div>
+
+              <div style="display: flex; align-items: center" class="col s12">
+                <a id="convert" class="waves-effect waves-light btn-large">Avvia conversione</a>
+                <div
+                  style="margin-left: 2rem"
+                  class="switch tooltipped"
+                  data-position="top"
+                  data-tooltip="Il TTS multithread mostra ancora qualche bug, pertanto bisogna evitare di usarlo">
+                  <label for="multithreaded-tts">
+                    TTS multithread
+                    <input disabled type="checkbox" id="multithreaded-tts" />
+                    <span class="lever"></span>
+                  </label>
+                </div>
+                <div
+                  style="margin-left: 2rem"
+                  class="switch tooltipped"
+                  data-position="top"
+                  data-tooltip="Utilizza più thread del processore in modo da velocizzare i tempi di codifica">
+                  <label for="multithreaded-encoding">
+                    Codifica multithread
+                    <input type="checkbox" id="multithreaded-encoding" checked />
+                    <span class="lever"></span>
+                  </label>
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -532,5 +641,8 @@
     <script>
       require("./build/gui/renderer.js");
     </script>
+
+    <!-- DEBUG -->
+    <script src="./res/static/materialize.min.js"></script>
   </body>
 </html>

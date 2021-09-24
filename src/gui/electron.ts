@@ -42,7 +42,7 @@ function createWindow() {
     mainWindow.loadFile(path.join(process.cwd(), "./index.html"));
 
     // Open the DevTools.
-    // mainWindow.webContents.openDevTools();
+    mainWindow.webContents.openDevTools();
 }
 
 // This method will be called when Electron has finished
@@ -115,11 +115,12 @@ ipcMain.on("latest-commit", event => {
     event.reply("latest-commit", commit);
 });
 
-interface ConversionArg {
+export interface ConversionArg {
     jsonContent: AnyObj[];
     ttsString: string;
     fileName: string;
     format: "mp3" | "wav";
+    sampleFormat: string;
     bitrate: string;
     sampleRate: number;
     volume: number;
@@ -140,6 +141,7 @@ ipcMain.on("start-conversion", async (event, arg) => {
         ttsString,
         fileName,
         format,
+        sampleFormat,
         bitrate,
         sampleRate,
         volume,
@@ -161,7 +163,7 @@ ipcMain.on("start-conversion", async (event, arg) => {
     event.reply("conversion-status", { msg: "TTS istanziato" });
 
     // DEBUG!! Considera "format", ora è hard coded wav
-    const encoder = new Encoder({ bitrate, channels: 1, sampleRate, volume });
+    const encoder = new Encoder({ bitrate, channels: 1, sampleRate, volume, sampleFormat });
     event.reply("conversion-status", { msg: "Encoder istanziato" });
 
     event.reply("conversion-status", { msg: "Pulisco cartella temporanea..." });

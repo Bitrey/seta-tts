@@ -4,6 +4,7 @@ import fs from "fs";
 import { VoicesReturn } from "../classes/Voices";
 
 import mType from "materialize-css";
+import { ConversionArg } from "./electron";
 
 const mDebugPath = path.join(__dirname, "../../res/static/materialize.min.js");
 const isDebug = fs.existsSync(mDebugPath);
@@ -202,6 +203,8 @@ function renderTable() {
     document.querySelector(".csv-file-container")?.classList.remove("hide");
 
     M.Collapsible.getInstance(previewCollapsibleElem).open(0);
+    M.Collapsible.getInstance(audioOptionsElem).open(0);
+    M.Collapsible.getInstance(audioOptionsElem).close(1);
 }
 
 M.Collapsible.getInstance(previewCollapsibleElem).options.onOpenStart = () => {
@@ -228,6 +231,8 @@ function newFile() {
     (document.querySelector(".csv-upload-container") as HTMLElement).classList.remove("hide");
 
     M.Collapsible.getInstance(previewCollapsibleElem).close(0);
+    M.Collapsible.getInstance(audioOptionsElem).close(0);
+    M.Collapsible.getInstance(audioOptionsElem).close(1);
 
     audioLog(null, true);
 
@@ -319,6 +324,22 @@ function audioLog(err: string | null, hide = false, disable = false) {
     }
 }
 
+const normalValues = {
+    mo: {
+        format: "wav",
+        sampleFormat: "pcm_u8",
+        bitrate: "24k",
+        sampleRate: "11025",
+        volume: 1
+    },
+    re: {
+        format: "mp3",
+        bitrate: "24k",
+        sampleRate: "11025",
+        volume: 1.5
+    }
+};
+
 document.getElementById("convert")?.addEventListener("click", event => {
     audioLog(null, true, true);
 
@@ -336,22 +357,44 @@ document.getElementById("convert")?.addEventListener("click", event => {
     }
 
     console.log("start-conversion");
-    ipcRenderer.send("start-conversion", {
+    let options: ConversionArg = {
         jsonContent: state.jsonContent,
         ttsString,
         fileName,
-        format: (document.getElementById("audio-format-input") as HTMLInputElement).value,
-        bitrate: (document.getElementById("bitrate") as HTMLInputElement).value,
-        sampleRate: (document.getElementById("sample-rate") as HTMLInputElement).value,
-        volume: parseInt((document.getElementById("volume") as HTMLInputElement).value) / 100,
+        format: "mp3",
+        sampleFormat: "pcm_u8",
+        bitrate: "24k",
+        sampleRate: 11025,
+        volume: 1,
         outputPath: state.outputPath,
         multithreadedTTS: (document.getElementById("multithreaded-tts") as HTMLInputElement)
             .checked,
         multithreadedEncoding: (
             document.getElementById("multithreaded-encoding") as HTMLInputElement
         ).checked,
-        voice: (document.getElementById("voice-select") as HTMLInputElement).value
-    });
+        voice: (document.getElementById("voice-select") as HTMLInputElement).value as any
+    };
+
+    if (document.getElementById("audio-advanced")?.classList.contains("active")) {
+        // prettier-ignore
+        options = {
+            ...options,
+            format: (document.getElementById("audio-format-input") as HTMLInputElement).value as any,
+            sampleFormat: (document.getElementById("sample-format-input") as HTMLInputElement).value,
+            bitrate: (document.getElementById("bitrate") as HTMLInputElement).value,
+            sampleRate: parseInt((document.getElementById("sample-rate") as HTMLInputElement).value),
+            volume: parseInt((document.getElementById("volume") as HTMLInputElement).value) / 100
+        };
+        console.log("Utilizzo impostazioni avanzate: ", options);
+    } else {
+        const bacinoElem = document.querySelector('input[name="bacino"]:checked');
+        if (!bacinoElem || !(bacinoElem instanceof HTMLInputElement)) {
+            throw new Error("no bacino radio");
+        }
+        options = { ...options, ...(normalValues as any)[bacinoElem.value] };
+        console.log("bacino", bacinoElem.value, "Utilizzo impostazioni di default: ", options);
+    }
+    ipcRenderer.send("start-conversion", options);
 });
 
 interface ConversionStatus {
@@ -376,6 +419,32 @@ M.Collapsible.getInstance(voicesCollapsibleElem).options.onOpenStart = () => {
 };
 M.Collapsible.getInstance(voicesCollapsibleElem).options.onCloseStart = () => {
     document.getElementById("voices-collapsible-arrow")?.classList.remove("expanded");
+};
+
+const audioOptionsElem = document.getElementById("audio-options-collapsible") as HTMLUListElement;
+if (!audioOptionsElem) throw new Error("no audio-options-collapsible elem");
+
+M.Collapsible.getInstance(audioOptionsElem).options.onOpenStart = elem => {
+    if (elem.id === "audio-easy") {
+        document.getElementById("audio-easy-collapsible-arrow")?.classList.add("expanded");
+        document.getElementById("audio-advanced-collapsible-arrow")?.classList.remove("expanded");
+    } else if (elem.id === "audio-advanced") {
+        document.getElementById("audio-easy-collapsible-arrow")?.classList.remove("expanded");
+        document.getElementById("audio-advanced-collapsible-arrow")?.classList.add("expanded");
+    }
+};
+M.Collapsible.getInstance(audioOptionsElem).options.onCloseStart = elem => {
+    if (elem.id === "audio-easy") {
+        if (document.getElementById("audio-advanced")?.classList.contains("active")) {
+            document.getElementById("audio-advanced-collapsible-arrow")?.classList.add("expanded");
+        }
+        document.getElementById("audio-easy-collapsible-arrow")?.classList.remove("expanded");
+    } else if (elem.id === "audio-advanced") {
+        if (document.getElementById("audio-easy")?.classList.contains("active")) {
+            document.getElementById("audio-easy-collapsible-arrow")?.classList.add("expanded");
+        }
+        document.getElementById("audio-advanced-collapsible-arrow")?.classList.remove("expanded");
+    }
 };
 
 ipcRenderer.send("get-voices");
