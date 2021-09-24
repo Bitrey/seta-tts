@@ -271,7 +271,11 @@ async function fileNamePreview() {
     const { value } = fileNameElem;
     const c = document.getElementById("file-name-preview-container") as HTMLElement;
     c.style.visibility = !!value ? "visible" : "hidden";
-    const format = (document.getElementById("audio-format-input") as HTMLInputElement).value;
+    const format = isAdvanced()
+        ? (document.getElementById("audio-format-input") as HTMLInputElement).value
+        : getBacinoElem().value === "mo"
+        ? "wav"
+        : "mp3";
     fileNamePreviewElem.textContent = `${await formatVariables(value)}.${format}`;
 }
 
@@ -340,6 +344,14 @@ const normalValues = {
     }
 };
 
+function isAdvanced(): boolean {
+    return !!document.getElementById("audio-advanced")?.classList.contains("active");
+}
+
+function getBacinoElem() {
+    return document.querySelector('input[name="bacino"]:checked') as HTMLInputElement;
+}
+
 document.getElementById("convert")?.addEventListener("click", event => {
     audioLog(null, true, true);
 
@@ -375,7 +387,7 @@ document.getElementById("convert")?.addEventListener("click", event => {
         voice: (document.getElementById("voice-select") as HTMLInputElement).value as any
     };
 
-    if (document.getElementById("audio-advanced")?.classList.contains("active")) {
+    if (isAdvanced()) {
         // prettier-ignore
         options = {
             ...options,
@@ -387,7 +399,7 @@ document.getElementById("convert")?.addEventListener("click", event => {
         };
         console.log("Utilizzo impostazioni avanzate: ", options);
     } else {
-        const bacinoElem = document.querySelector('input[name="bacino"]:checked');
+        const bacinoElem = getBacinoElem();
         if (!bacinoElem || !(bacinoElem instanceof HTMLInputElement)) {
             throw new Error("no bacino radio");
         }
@@ -396,6 +408,10 @@ document.getElementById("convert")?.addEventListener("click", event => {
     }
     ipcRenderer.send("start-conversion", options);
 });
+
+// CONTINUA DA QUI DEBUG
+// fileNamePreviewElem
+document.getElementById("bacino-click-container")?.addEventListener("click", fileNamePreview);
 
 interface ConversionStatus {
     msg: string;
@@ -432,6 +448,7 @@ M.Collapsible.getInstance(audioOptionsElem).options.onOpenStart = elem => {
         document.getElementById("audio-easy-collapsible-arrow")?.classList.remove("expanded");
         document.getElementById("audio-advanced-collapsible-arrow")?.classList.add("expanded");
     }
+    fileNamePreview();
 };
 M.Collapsible.getInstance(audioOptionsElem).options.onCloseStart = elem => {
     if (elem.id === "audio-easy") {
@@ -445,6 +462,7 @@ M.Collapsible.getInstance(audioOptionsElem).options.onCloseStart = elem => {
         }
         document.getElementById("audio-advanced-collapsible-arrow")?.classList.remove("expanded");
     }
+    fileNamePreview();
 };
 
 ipcRenderer.send("get-voices");
